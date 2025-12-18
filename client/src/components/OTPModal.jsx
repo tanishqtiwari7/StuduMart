@@ -82,7 +82,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
           <div className="flex justify-center gap-2 mb-8">
             {otp.map((data, index) => (
               <input
-                className="w-12 h-12 text-center text-2xl font-bold border-2 border-slate-200 rounded-lg focus:border-indigo-600 focus:outline-none transition-colors"
+                className="w-12 h-12 text-center text-2xl font-bold border-2 border-slate-200 rounded-lg focus:border-[#0a0a38] focus:outline-none transition-colors"
                 type="text"
                 name="otp"
                 maxLength="1"
@@ -102,7 +102,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
           <button
             onClick={handleVerify}
             disabled={isLoading}
-            className="w-full bg-indigo-600 text-white font-bold py-3 px-4 rounded-xl hover:bg-indigo-700 transition duration-300 shadow-lg hover:shadow-indigo-500/30 disabled:opacity-50"
+            className="w-full bg-[#0a0a38] text-white font-bold py-3 px-4 rounded-xl hover:bg-slate-900 transition duration-300 shadow-lg hover:shadow-slate-500/30 disabled:opacity-50"
           >
             {isLoading ? "Verifying..." : "Verify Email"}
           </button>
@@ -118,7 +118,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
               className={`font-semibold ${
                 timer > 0
                   ? "text-slate-300 cursor-not-allowed"
-                  : "text-indigo-600 hover:text-indigo-800"
+                  : "text-[#0a0a38] hover:text-slate-700"
               }`}
             >
               Resend Code

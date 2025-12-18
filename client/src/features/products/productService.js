@@ -32,6 +32,24 @@ const remove = async (id, token) => {
   return response.data;
 };
 
-const productService = { fetchProducts, fetchProduct, update, add, remove };
+const approve = async (id, token) => {
+  const options = { headers: { authorization: `Bearer ${token}` } };
+  const response = await axios.put(`/api/product/${id}/approve`, {}, options);
+  return response.data;
+};
+
+const reject = async (id, token) => {
+  const options = { headers: { authorization: `Bearer ${token}` } };
+  const response = await axios.put(`/api/product/${id}/reject`, {}, options);
+  return response.data;
+};
+
+const markSold = async (id, token) => {
+  const options = { headers: { authorization: `Bearer ${token}` } };
+  const response = await axios.put(`/api/product/${id}/sold`, {}, options);
+  return response.data;
+};
+
+const productService = { fetchProducts, fetchProduct, update, add, remove, approve, reject, markSold };
 
 export default productService;

@@ -38,7 +38,7 @@ const getProducts = async (req, res) => {
       if (maxPrice) query.price.$lte = Number(maxPrice);
     }
 
-    query.status = "active"; // Only show active listings
+    query.status = "approved"; // Only show approved listings
 
     // Sorting
     let sortOption = { createdAt: -1 }; // Default: newest first
@@ -104,7 +104,7 @@ const addProduct = async (req, res) => {
     location: location || { campus: "Main" },
     tags: tags || [],
     user: req.user._id,
-    status: "active",
+    status: "pending", // Explicitly set to pending
   });
 
   if (!newListing) {
@@ -188,10 +188,63 @@ const deleteProduct = async (req, res) => {
   res.status(200).json({ id: req.params.id });
 };
 
+// Admin: Approve Product
+const approveProduct = async (req, res) => {
+  const listing = await Listing.findById(req.params.id);
+
+  if (!listing) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  listing.status = "approved";
+  await listing.save();
+
+  res.status(200).json(listing);
+};
+
+// Admin: Reject Product
+const rejectProduct = async (req, res) => {
+  const listing = await Listing.findById(req.params.id);
+
+  if (!listing) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  listing.status = "rejected";
+  await listing.save();
+
+  res.status(200).json(listing);
+};
+
+// Student: Mark as Sold
+const markSold = async (req, res) => {
+  const listing = await Listing.findById(req.params.id);
+
+  if (!listing) {
+    res.status(404);
+    throw new Error("Product not found");
+  }
+
+  if (listing.user.toString() !== req.user.id) {
+     res.status(401);
+     throw new Error("Not authorized");
+  }
+
+  listing.status = "sold";
+  await listing.save();
+
+  res.status(200).json(listing);
+};
+
 module.exports = {
   getProducts,
   addProduct,
   getProduct,
   updateProduct,
   deleteProduct,
+  approveProduct,
+  rejectProduct,
+  markSold
 };

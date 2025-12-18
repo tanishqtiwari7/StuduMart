@@ -122,6 +122,24 @@ const productSlice = createSlice({
         state.productLoading = false;
         state.productError = true;
         state.productErrorMessage = action.payload;
+      })
+      // Approve
+      .addCase(approveProduct.fulfilled, (state, action) => {
+         state.allProducts = state.allProducts.map(p => 
+            p._id === action.payload._id ? action.payload : p
+         );
+      })
+      // Reject
+      .addCase(rejectProduct.fulfilled, (state, action) => {
+         state.allProducts = state.allProducts.map(p => 
+            p._id === action.payload._id ? action.payload : p
+         );
+      })
+      // Mark Sold
+      .addCase(markSoldProduct.fulfilled, (state, action) => {
+         state.allProducts = state.allProducts.map(p => 
+            p._id === action.payload._id ? action.payload : p
+         );
       });
   },
 });
@@ -194,6 +212,48 @@ export const deleteProduct = createAsyncThunk(
       return await productService.remove(id, token);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Approve Product
+export const approveProduct = createAsyncThunk(
+  "APPROVE/PRODUCT",
+  async (id, thunkAPI) => {
+    let token = thunkAPI.getState().auth.user.token;
+    try {
+      return await productService.approve(id, token);
+    } catch (error) {
+       const message = error.response?.data?.message || error.message;
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Reject Product
+export const rejectProduct = createAsyncThunk(
+  "REJECT/PRODUCT",
+  async (id, thunkAPI) => {
+    let token = thunkAPI.getState().auth.user.token;
+    try {
+      return await productService.reject(id, token);
+    } catch (error) {
+       const message = error.response?.data?.message || error.message;
+      return thunkAPI.rejectWithValue(message);
+    }
+  }
+);
+
+// Mark Sold
+export const markSoldProduct = createAsyncThunk(
+  "SOLD/PRODUCT",
+  async (id, thunkAPI) => {
+    let token = thunkAPI.getState().auth.user.token;
+    try {
+      return await productService.markSold(id, token);
+    } catch (error) {
+       const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);
     }
   }

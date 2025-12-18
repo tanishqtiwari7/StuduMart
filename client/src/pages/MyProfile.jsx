@@ -19,7 +19,9 @@ import {
   editProduct,
   getProducts,
   updateProduct,
+  updateProduct,
   deleteProduct,
+  markSoldProduct,
 } from "../features/products/productSlice";
 import { toast } from "react-toastify";
 import { useNavigate } from "react-router-dom";
@@ -73,7 +75,7 @@ const MyProfile = () => {
         toast.success("Product Updated Successfully");
       } else {
         await dispatch(addProduct(formData)).unwrap();
-        toast.success("Product Added Successfully");
+        toast.info("Product submitted for approval!");
       }
       setShowAddModal(false);
       setFormData({
@@ -254,20 +256,38 @@ const MyProfile = () => {
                               {product.title}
                             </h3>
                             <span
-                              className={`px-2 py-0.5 rounded text-xs font-medium ${
-                                product.isAvailable
+                              className={`px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                                product.status === "approved"
                                   ? "bg-green-100 text-green-800"
-                                  : "bg-red-100 text-red-800"
+                                  : product.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800"
+                                  : product.status === "rejected"
+                                  ? "bg-red-100 text-red-800"
+                                  : "bg-slate-100 text-slate-800"
                               }`}
                             >
-                              {product.isAvailable ? "Active" : "Sold"}
+                              {product.status}
                             </span>
                           </div>
                           <p className="text-slate-500 text-sm line-clamp-2 mb-4 flex-grow">
                             {product.description}
                           </p>
-                          <div className="font-bold text-[#0a0a38] text-lg">
-                            {formatPrice(product.price)}
+                          <div className="flex justify-between items-center mt-auto">
+                            <div className="font-bold text-[#0a0a38] text-lg">
+                                {formatPrice(product.price)}
+                            </div>
+                            {product.status === "approved" && (
+                                <button
+                                    onClick={() => {
+                                        if(window.confirm("Mark this item as sold? It will be hidden from the marketplace.")) {
+                                            dispatch(markSoldProduct(product._id));
+                                        }
+                                    }}
+                                    className="text-xs px-3 py-1 bg-slate-900 text-white rounded-md hover:bg-slate-700 transition"
+                                >
+                                    Mark Sold
+                                </button>
+                            )}
                           </div>
                         </div>
                       </div>
@@ -443,19 +463,7 @@ const MyProfile = () => {
                 />
               </div>
 
-              <div className="flex items-center gap-2">
-                <input
-                  type="checkbox"
-                  id="isAvailable"
-                  name="isAvailable"
-                  checked={formData.isAvailable}
-                  onChange={handleChange}
-                  className="w-4 h-4 text-[#0a0a38] border-slate-300 rounded focus:ring-[#0a0a38]"
-                />
-                <label htmlFor="isAvailable" className="text-sm text-slate-700">
-                  Mark as Available
-                </label>
-              </div>
+              {/* Moved logic: Removed isAvailable checkbox as status is handled by backend */ }
 
               <div className="pt-4 border-t border-slate-100 flex justify-end gap-4">
                 <button

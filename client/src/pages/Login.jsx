@@ -95,7 +95,7 @@ const Login = () => {
                     value={formData.email}
                     onChange={handleChange}
                     className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm transition-colors"
-                    placeholder="you@university.edu"
+                    placeholder="example@acropolis.in"
                   />
                 </div>
               </div>

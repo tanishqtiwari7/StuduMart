@@ -5,11 +5,13 @@ import { useDispatch, useSelector } from "react-redux";
 import { getProducts } from "../features/products/productSlice";
 import { toast } from "react-toastify";
 import Loader from "../components/Loader";
+import { Link } from "react-router-dom";
 import {
   Search,
   SlidersHorizontal,
   ChevronLeft,
   ChevronRight,
+  Plus,
 } from "lucide-react";
 
 const Marketplace = () => {
@@ -98,6 +100,16 @@ const Marketplace = () => {
           </div>
 
           <div className="flex items-center gap-3 w-full md:w-auto">
+            {/* Sell Button for Students */}
+             <div className="hidden md:block">
+                <Link
+                    to="/my-profile"
+                    className="flex items-center gap-2 px-4 py-2.5 bg-[#0a0a38] text-white rounded-xl hover:bg-slate-900 transition-colors font-medium shadow-md hover:shadow-lg"
+                >
+                    <Plus size={20} />
+                    <span>Sell Item</span>
+                </Link>
+             </div>
             <div className="relative flex-1 md:w-80">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
@@ -123,6 +135,17 @@ const Marketplace = () => {
               <SlidersHorizontal size={20} />
             </button>
           </div>
+        </div>
+
+        {/* Mobile Sell Button */}
+        <div className="md:hidden mb-6">
+            <Link
+                to="/my-profile?tab=listings&action=add" // Optional query params if I want to auto-open
+                className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-[#0a0a38] text-white rounded-xl hover:bg-slate-900 transition-colors font-medium shadow-sm"
+            >
+                <Plus size={20} />
+                <span>Sell Item</span>
+            </Link>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">

@@ -10,6 +10,7 @@ import {
   X,
   LogOut,
   User,
+  LayoutDashboard,
 } from "lucide-react";
 
 const Header = () => {
@@ -33,15 +34,38 @@ const Header = () => {
     navigate("/login");
   };
 
-  const navLinks = [
-    { path: "/", label: "Home", icon: <Home size={20} /> },
-    {
-      path: "/marketplace",
-      label: "Marketplace",
-      icon: <ShoppingBag size={20} />,
-    },
-    { path: "/events", label: "Events", icon: <Calendar size={20} /> },
-  ];
+  // Hide Header on Login/Register pages
+  if (['/login', '/register', '/forgot-password'].includes(location.pathname) || location.pathname.startsWith('/reset-password')) {
+    return null;
+  }
+
+  const getNavLinks = () => {
+    const links = [{ path: "/", label: "Home", icon: <Home size={20} /> }];
+    
+    if (user?.role === "student") {
+        links.push(
+            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> },
+            { path: "/events", label: "Events", icon: <Calendar size={20} /> }
+        );
+    } else if (user?.role === "admin") {
+         links.push(
+            { path: "/auth/admin", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
+             // Admins still might want to see the public marketplace
+            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> }
+        );
+    } else if (user?.role === "superadmin") {
+        links.push({ path: "/auth/superadmin", label: "Admin Panel", icon: <LayoutDashboard size={20} /> });
+    } else {
+        // Public / Guest links
+        links.push(
+            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> },
+            { path: "/events", label: "Events", icon: <Calendar size={20} /> }
+        );
+    }
+    return links;
+  };
+
+  const navLinks = getNavLinks();
 
   const isActive = (path) => location.pathname === path;
 
@@ -99,18 +123,6 @@ const Header = () => {
           <div className="hidden md:flex items-center space-x-4">
             {user ? (
               <div className="flex items-center space-x-4">
-                {user.role === "superadmin" && (
-                    <Link
-                    to="/auth/superadmin"
-                    className={`text-sm font-bold px-3 py-1 rounded-full ${
-                        scrolled
-                        ? "bg-indigo-100 text-indigo-700 hover:bg-indigo-200"
-                        : "bg-white/20 text-white hover:bg-white/30"
-                    }`}
-                    >
-                    Super Admin
-                    </Link>
-                )}
                 <Link
                   to="/my-profile"
                   className={`flex items-center space-x-2 text-sm font-medium ${

@@ -63,8 +63,8 @@ const listingSchema = new mongoose.Schema(
     },
     status: {
       type: String,
-      enum: ["active", "sold", "pending", "expired", "removed"],
-      default: "active",
+      enum: ["pending", "approved", "rejected", "sold"],
+      default: "pending",
     },
     isAvailable: {
       // Legacy support
@@ -87,7 +87,7 @@ listingSchema.pre("save", function (next) {
     this.itemImage = this.images[0].url;
   }
   // Sync isAvailable with status
-  if (this.status === "active") {
+  if (this.status === "approved") {
     this.isAvailable = true;
   } else {
     this.isAvailable = false;

@@ -4,9 +4,17 @@ const nodemailer = require("nodemailer");
 const createTransporter = () => {
   return nodemailer.createTransport({
     service: "gmail", // Built-in service, simpler for Gmail
+    host: "smtp.gmail.com",
+    port: 587,
+    secure: false,
     auth: {
       user: process.env.EMAIL_USER || "johnwick123india@gmail.com", // Fallback/Default
-      pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : "", // Remove spaces if present
+      pass: process.env.EMAIL_PASS
+        ? process.env.EMAIL_PASS.replace(/\s+/g, "")
+        : "", // Remove spaces if present
+    },
+    tls: {
+      rejectUnauthorized: false, // Fix for SSL/TLS errors
     },
   });
 };
@@ -18,7 +26,9 @@ const sendEmail = async (options) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
+    from: `"StuduMart" <${
+      process.env.EMAIL_USER || "johnwick123india@gmail.com"
+    }>`,
     to: options.to,
     subject: options.subject,
     html: options.text, // Reusing text field for HTML for simplicity in this helper
@@ -37,7 +47,9 @@ const sendOTPEmail = async (to, otp, name) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
+    from: `"StuduMart" <${
+      process.env.EMAIL_USER || "johnwick123india@gmail.com"
+    }>`,
     to,
     subject: "Verify Your Email - StuduMart",
     html: `
@@ -111,7 +123,9 @@ const sendWelcomeEmail = async (to, name) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
+    from: `"StuduMart" <${
+      process.env.EMAIL_USER || "johnwick123india@gmail.com"
+    }>`,
     to,
     subject: "Welcome to StuduMart! 🎉",
     html: `
@@ -160,5 +174,5 @@ module.exports = {
   sendOTPEmail,
   generateOTP,
   sendWelcomeEmail,
-  sendEmail
+  sendEmail,
 };

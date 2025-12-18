@@ -86,7 +86,7 @@ const EventDetail = () => {
   const isGoing = event.attendees?.some(
     (a) => a.user?._id === user?._id || a.user === user?._id
   );
-  
+
   const spotsLeft = Math.max(
     0,
     (event.capacity || 50) - (event.attendees?.length || 0)
@@ -115,7 +115,7 @@ const EventDetail = () => {
           <div className="flex flex-wrap items-end justify-between gap-6">
             <div>
               <span className="inline-block px-3 py-1 rounded-full bg-[#0a0a38] text-white text-sm font-bold mb-3">
-                {event.category || "Event"}
+                {event.category?.name || "Event"}
               </span>
               <h1 className="text-4xl md:text-5xl font-bold text-white mb-4">
                 {event.eventName}
@@ -146,7 +146,7 @@ const EventDetail = () => {
                 <Share2 size={20} />
                 Share
               </button>
-              
+
               {!isGoing ? (
                 <>
                   {spotsLeft === 0 ? (
@@ -158,10 +158,10 @@ const EventDetail = () => {
                     </button>
                   ) : isPaidEvent ? (
                     <div className="w-48">
-                      <PaymentButton 
-                        eventId={eid} 
-                        amount={event.price} 
-                        onPaymentSuccess={handlePaymentSuccess} 
+                      <PaymentButton
+                        eventId={eid}
+                        amount={event.price}
+                        onPaymentSuccess={handlePaymentSuccess}
                       />
                     </div>
                   ) : (

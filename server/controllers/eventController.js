@@ -44,20 +44,20 @@ const getEvents = async (req, res) => {
       query.$or = [
         // Public events (visible to all)
         { "visibility.type": "all" },
-        
+
         // Branch-specific events
         {
           "visibility.type": "branch",
           "visibility.branches": userBranch,
         },
-        
+
         // Club-specific events
         {
           "visibility.type": "club",
           "visibility.clubs": { $in: userClubs },
         },
       ];
-    } 
+    }
     // If admin is viewing, filter by their organization scope if needed
     // Super admins see everything unless they filter specifically
     else if (branch) {
@@ -69,6 +69,7 @@ const getEvents = async (req, res) => {
     const events = await Event.find(query)
       .populate("organizerId", "name role organizationName")
       .populate("organizerClub", "name logo")
+      .populate("category", "name")
       .sort(sort === "date_asc" ? { eventDate: 1 } : { eventDate: 1 }) // Default upcoming first
       .skip(skip)
       .limit(Number(limit));
@@ -96,7 +97,8 @@ const getEvent = async (req, res) => {
       .populate("attendees.user", "name profile")
       .populate("organizerClub", "name logo")
       .populate("visibility.branches", "name code")
-      .populate("visibility.clubs", "name");
+      .populate("visibility.clubs", "name")
+      .populate("category", "name");
 
     if (!event) {
       res.status(404);
@@ -114,7 +116,9 @@ const getEvent = async (req, res) => {
         event.visibility.branches.some((b) => b._id.toString() === userBranch);
       const isClubVisible =
         event.visibility.type === "club" &&
-        event.visibility.clubs.some((c) => c._id.toString() && userClubs.includes(c._id.toString()));
+        event.visibility.clubs.some(
+          (c) => c._id.toString() && userClubs.includes(c._id.toString())
+        );
 
       if (!isPublic && !isBranchVisible && !isClubVisible) {
         res.status(403);
@@ -153,7 +157,11 @@ const createEvent = async (req, res) => {
   }
 
   // Create visibility object
-  const visibilitySettings = visibility || { type: "all", branches: [], clubs: [] };
+  const visibilitySettings = visibility || {
+    type: "all",
+    branches: [],
+    clubs: [],
+  };
 
   const event = await Event.create({
     eventName,
@@ -164,7 +172,7 @@ const createEvent = async (req, res) => {
     capacity: capacity || 50,
     organizer,
     price: price || 0,
-    category: category || "Other",
+    category,
     organizerId: req.user._id,
     organizerClub: organizerClub || null,
     visibility: visibilitySettings,

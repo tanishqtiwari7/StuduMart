@@ -31,6 +31,18 @@ const createBranch = async (branchData, token) => {
   return response.data;
 };
 
+const updateBranch = async (id, branchData, token) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+  const response = await axios.put(
+    API_URL + "branches/" + id,
+    branchData,
+    config
+  );
+  return response.data;
+};
+
 const deleteBranch = async (id, token) => {
   const config = {
     headers: { Authorization: `Bearer ${token}` },
@@ -57,6 +69,14 @@ const createClub = async (clubData, token) => {
   return response.data;
 };
 
+const updateClub = async (id, clubData, token) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+  const response = await axios.put(API_URL + "clubs/" + id, clubData, config);
+  return response.data;
+};
+
 const deleteClub = async (id, token) => {
   const config = {
     headers: { Authorization: `Bearer ${token}` },
@@ -80,6 +100,22 @@ const createAdmin = async (adminData, token) => {
     headers: { Authorization: `Bearer ${token}` },
   };
   const response = await axios.post(API_URL + "admins", adminData, config);
+  return response.data;
+};
+
+const updateAdmin = async (id, adminData, token) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+  const response = await axios.put(API_URL + "admins/" + id, adminData, config);
+  return response.data;
+};
+
+const deleteAdmin = async (id, token) => {
+  const config = {
+    headers: { Authorization: `Bearer ${token}` },
+  };
+  const response = await axios.delete(API_URL + "admins/" + id, config);
   return response.data;
 };
 
@@ -111,12 +147,16 @@ const superAdminService = {
   getStats,
   getAllBranches,
   createBranch,
+  updateBranch,
   deleteBranch,
   getAllClubs,
   createClub,
+  updateClub,
   deleteClub,
   getAllAdmins,
   createAdmin,
+  updateAdmin,
+  deleteAdmin,
   deactivateAdmin,
   reactivateAdmin,
 };

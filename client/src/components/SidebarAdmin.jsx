@@ -8,6 +8,8 @@ import {
   Menu,
   X,
 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Card, CardContent } from "./ui/card";
 
 const SidebarAdmin = ({ activeTab, setActiveTab }) => {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -40,57 +42,64 @@ const SidebarAdmin = ({ activeTab, setActiveTab }) => {
     },
   ];
 
+  const SidebarContent = () => (
+    <div className="space-y-2">
+      {menuItems.map((item) => (
+        <Button
+          key={item.id}
+          variant={activeTab === item.id ? "secondary" : "ghost"}
+          className={`w-full justify-start ${
+            activeTab === item.id
+              ? "bg-blue-50 text-[#0a0a38] hover:bg-blue-100"
+              : "text-slate-600 hover:bg-slate-50"
+          }`}
+          onClick={() => {
+            setActiveTab(item.id);
+            setMobileMenuOpen(false);
+          }}
+        >
+          <span className="mr-3">{item.icon}</span>
+          {item.label}
+        </Button>
+      ))}
+    </div>
+  );
+
   return (
     <>
-      <button
+      <Button
+        variant="outline"
+        size="icon"
         onClick={() => setMobileMenuOpen(!mobileMenuOpen)}
-        className="lg:hidden fixed top-20 left-4 z-40 p-2 bg-white rounded-lg shadow-md border border-slate-200 text-slate-600 hover:bg-slate-50 transition-colors"
+        className="lg:hidden fixed top-24 left-4 z-40 bg-white shadow-md"
         aria-label="Toggle menu"
       >
         {mobileMenuOpen ? <X size={24} /> : <Menu size={24} />}
-      </button>
+      </Button>
 
-      {/* Overlay */}
+      {/* Mobile Sidebar Overlay */}
       {mobileMenuOpen && (
         <div
-          className="fixed inset-0 bg-black/20 z-30 lg:hidden"
+          className="fixed inset-0 bg-black/50 z-30 lg:hidden backdrop-blur-sm"
           onClick={() => setMobileMenuOpen(false)}
         />
       )}
 
-      <aside
-        className={`fixed lg:sticky top-16 left-0 h-[calc(100vh-4rem)] bg-white border-r border-slate-200 w-64 transition-transform duration-300 z-40 overflow-y-auto ${
-          mobileMenuOpen
-            ? "translate-x-0"
-            : "-translate-x-full lg:translate-x-0"
+      {/* Sidebar Container */}
+      <div
+        className={`fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out lg:transform-none ${
+          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
         }`}
       >
-        <div className="p-6">
-          <h2 className="text-xl font-bold text-slate-900 mb-6 px-2">
-            Admin Panel
-          </h2>
-
-          <nav className="space-y-1">
-            {menuItems.map((item) => (
-              <button
-                key={item.id}
-                onClick={() => {
-                  setActiveTab(item.id);
-                  setMobileMenuOpen(false);
-                }}
-                className={`w-full flex items-center space-x-3 px-4 py-3 rounded-lg font-medium transition-all duration-200 ${
-                  activeTab === item.id
-                    ? "bg-blue-50 text-[#0a0a38]"
-                    : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                }`}
-              >
-                {item.icon}
-                <span>{item.label}</span>
-              </button>
-            ))}
-          </nav>
-        </div>
-      </aside>
+        <Card className="h-full lg:h-auto border-r lg:border border-slate-200 shadow-sm lg:shadow-none rounded-none lg:rounded-xl">
+          <CardContent className="p-4 pt-20 lg:pt-4">
+            <div className="lg:hidden mb-6 px-2">
+              <h2 className="text-xl font-bold text-[#0a0a38]">Admin Panel</h2>
+            </div>
+            <SidebarContent />
+          </CardContent>
+        </Card>
+      </div>
     </>
   );
 };

@@ -1,6 +1,19 @@
 import { X } from "lucide-react";
+import { useEffect } from "react";
+import { useDispatch, useSelector } from "react-redux";
+import { getCategories } from "../features/categories/categorySlice";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import { Card, CardContent, CardHeader, CardTitle } from "./ui/card";
 
 const FilterPanel = ({ filters, setFilters, onClose }) => {
+  const dispatch = useDispatch();
+  const { categories } = useSelector((state) => state.category);
+
+  useEffect(() => {
+    dispatch(getCategories("listing"));
+  }, [dispatch]);
+
   const handlePriceChange = (e, type) => {
     const value = e.target.value === "" ? 0 : parseInt(e.target.value);
     setFilters({
@@ -16,28 +29,37 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
     setFilters({ ...filters, sortBy: e.target.value });
   };
 
+  const handleCategoryChange = (e) => {
+    setFilters({ ...filters, category: e.target.value });
+  };
+
   const resetFilters = () => {
     setFilters({
       priceRange: { min: 0, max: 100000 },
       sortBy: "newest",
       search: "",
+      category: "",
     });
   };
 
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 p-6">
-      <div className="flex items-center justify-between mb-6">
-        <h2 className="text-lg font-bold text-slate-900">Filters</h2>
-        <button
+    <Card className="border-slate-200 shadow-sm">
+      <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-4">
+        <CardTitle className="text-lg font-bold text-slate-900">
+          Filters
+        </CardTitle>
+        <Button
+          variant="ghost"
+          size="icon"
           onClick={onClose}
-          className="md:hidden p-2 hover:bg-slate-100 rounded-lg transition-colors"
+          className="md:hidden h-8 w-8"
           aria-label="Close filters"
         >
           <X size={20} />
-        </button>
-      </div>
+        </Button>
+      </CardHeader>
 
-      <div className="space-y-6">
+      <CardContent className="space-y-6">
         <div>
           <label className="block text-sm font-semibold text-slate-700 mb-3">
             Price Range
@@ -48,14 +70,13 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
                 <label className="block text-xs text-slate-500 mb-1">
                   Min (₹)
                 </label>
-                <input
+                <Input
                   type="number"
                   value={
                     filters.priceRange.min === 0 ? "" : filters.priceRange.min
                   }
                   onChange={(e) => handlePriceChange(e, "min")}
                   min="0"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a0a38] text-sm"
                   placeholder="0"
                 />
               </div>
@@ -63,7 +84,7 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
                 <label className="block text-xs text-slate-500 mb-1">
                   Max (₹)
                 </label>
-                <input
+                <Input
                   type="number"
                   value={
                     filters.priceRange.max === 100000
@@ -72,18 +93,34 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
                   }
                   onChange={(e) => handlePriceChange(e, "max")}
                   min="0"
-                  className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-[#0a0a38] text-sm"
                   placeholder="Max"
                 />
               </div>
             </div>
-            <div className="bg-blue-50 rounded-lg p-3 text-center">
+            <div className="bg-slate-50 rounded-lg p-3 text-center">
               <p className="text-sm text-[#0a0a38] font-medium">
                 ₹{filters.priceRange.min.toLocaleString()} - ₹
                 {filters.priceRange.max.toLocaleString()}
               </p>
             </div>
           </div>
+        </div>
+        <div>
+          <label className="block text-sm font-semibold text-slate-700 mb-3">
+            Category
+          </label>
+          <select
+            value={filters.category}
+            onChange={handleCategoryChange}
+            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+          >
+            <option value="">All Categories</option>
+            {categories.map((cat) => (
+              <option key={cat._id} value={cat._id}>
+                {cat.name}
+              </option>
+            ))}
+          </select>
         </div>
 
         <div>
@@ -93,7 +130,7 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
           <select
             value={filters.sortBy}
             onChange={handleSortChange}
-            className="w-full px-3 py-2 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-slate-900 bg-white text-sm"
+            className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
           >
             <option value="newest">Newest First</option>
             <option value="price-low">Price: Low to High</option>
@@ -101,14 +138,11 @@ const FilterPanel = ({ filters, setFilters, onClose }) => {
           </select>
         </div>
 
-        <button
-          onClick={resetFilters}
-          className="w-full py-2 px-4 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 text-sm"
-        >
+        <Button variant="outline" onClick={resetFilters} className="w-full">
           Reset Filters
-        </button>
-      </div>
-    </div>
+        </Button>
+      </CardContent>
+    </Card>
   );
 };
 

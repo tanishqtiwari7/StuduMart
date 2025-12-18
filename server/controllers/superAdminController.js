@@ -101,11 +101,15 @@ const deleteBranch = async (req, res) => {
     const usersInBranch = await User.countDocuments({ branch: req.params.id });
     if (usersInBranch > 0) {
       res.status(400);
-      throw new Error(`Cannot delete: ${usersInBranch} users belong to this branch`);
+      throw new Error(
+        `Cannot delete: ${usersInBranch} users belong to this branch`
+      );
     }
 
     await Branch.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: "Branch deleted successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "Branch deleted successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -136,7 +140,8 @@ const getAllClubs = async (req, res) => {
 // @access  Super Admin
 const createClub = async (req, res) => {
   try {
-    const { name, code, description, logo, branch, category, socialLinks } = req.body;
+    const { name, code, description, logo, branch, category, socialLinks } =
+      req.body;
 
     if (!name || !code) {
       res.status(400);
@@ -165,8 +170,10 @@ const createClub = async (req, res) => {
       createdBy: req.user._id,
     });
 
-    const populatedClub = await Club.findById(club._id)
-      .populate("branch", "name code");
+    const populatedClub = await Club.findById(club._id).populate(
+      "branch",
+      "name code"
+    );
 
     res.status(201).json(populatedClub);
   } catch (error) {
@@ -187,11 +194,9 @@ const updateClub = async (req, res) => {
       throw new Error("Club not found");
     }
 
-    const updatedClub = await Club.findByIdAndUpdate(
-      req.params.id,
-      req.body,
-      { new: true }
-    ).populate("branch", "name code");
+    const updatedClub = await Club.findByIdAndUpdate(req.params.id, req.body, {
+      new: true,
+    }).populate("branch", "name code");
 
     res.status(200).json(updatedClub);
   } catch (error) {
@@ -213,7 +218,9 @@ const deleteClub = async (req, res) => {
     }
 
     await Club.findByIdAndDelete(req.params.id);
-    res.status(200).json({ message: "Club deleted successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "Club deleted successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -229,9 +236,34 @@ const getAllAdmins = async (req, res) => {
   try {
     const admins = await User.find({ role: "admin" })
       .select("-password")
-      .populate("organizationId")
-      .sort({ createdAt: -1 });
-    res.status(200).json(admins);
+      .sort({ createdAt: -1 })
+      .lean();
+
+    // Manually populate to avoid refPath issues with "none" type
+    const populatedAdmins = await Promise.all(
+      admins.map(async (admin) => {
+        if (
+          admin.organizationType &&
+          admin.organizationType !== "none" &&
+          admin.organizationId
+        ) {
+          if (admin.organizationType === "Branch") {
+            const branch = await Branch.findById(admin.organizationId).select(
+              "name code"
+            );
+            admin.organizationId = branch;
+          } else if (admin.organizationType === "Club") {
+            const club = await Club.findById(admin.organizationId).select(
+              "name code"
+            );
+            admin.organizationId = club;
+          }
+        }
+        return admin;
+      })
+    );
+
+    res.status(200).json(populatedAdmins);
   } catch (error) {
     res.status(500);
     throw new Error(error.message);
@@ -243,7 +275,8 @@ const getAllAdmins = async (req, res) => {
 // @access  Super Admin
 const createAdmin = async (req, res) => {
   try {
-    const { name, email, phone, password, organizationType, organizationId } = req.body;
+    const { name, email, phone, password, organizationType, organizationId } =
+      req.body;
 
     if (!name || !email || !phone || !password) {
       res.status(400);
@@ -252,7 +285,7 @@ const createAdmin = async (req, res) => {
 
     // Check if user already exists
     const existingUser = await User.findOne({
-      $or: [{ email }, { phone }],
+      $or: [{ email: email.toLowerCase().trim() }, { phone }],
     });
 
     if (existingUser) {
@@ -266,7 +299,7 @@ const createAdmin = async (req, res) => {
 
     const admin = await User.create({
       name,
-      email,
+      email: email.toLowerCase().trim(),
       phone,
       password: hashedPassword,
       role: "admin",
@@ -277,9 +310,11 @@ const createAdmin = async (req, res) => {
       createdBy: req.user._id,
     });
 
-    const populatedAdmin = await User.findById(admin._id)
-      .select("-password")
-      .populate("organizationId");
+    let query = User.findById(admin._id).select("-password");
+    if (organizationType && organizationType !== "none") {
+      query = query.populate("organizationId");
+    }
+    const populatedAdmin = await query;
 
     res.status(201).json(populatedAdmin);
   } catch (error) {
@@ -321,6 +356,33 @@ const updateAdmin = async (req, res) => {
   }
 };
 
+// @desc    Delete an admin
+// @route   DELETE /api/superadmin/admins/:id
+// @access  Super Admin
+const deleteAdmin = async (req, res) => {
+  try {
+    const admin = await User.findById(req.params.id);
+
+    if (!admin) {
+      res.status(404);
+      throw new Error("Admin not found");
+    }
+
+    if (admin.role === "superadmin") {
+      res.status(403);
+      throw new Error("Cannot delete Super Admin");
+    }
+
+    await User.findByIdAndDelete(req.params.id);
+    res
+      .status(200)
+      .json({ message: "Admin deleted successfully", id: req.params.id });
+  } catch (error) {
+    res.status(res.statusCode === 200 ? 500 : res.statusCode);
+    throw new Error(error.message);
+  }
+};
+
 // @desc    Deactivate an admin
 // @route   PUT /api/superadmin/admins/:id/deactivate
 // @access  Super Admin
@@ -344,7 +406,9 @@ const deactivateAdmin = async (req, res) => {
     admin.bannedBy = req.user._id;
     await admin.save();
 
-    res.status(200).json({ message: "Admin deactivated successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "Admin deactivated successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -369,7 +433,9 @@ const reactivateAdmin = async (req, res) => {
     admin.bannedBy = null;
     await admin.save();
 
-    res.status(200).json({ message: "Admin reactivated successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "Admin reactivated successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -425,7 +491,9 @@ const banUser = async (req, res) => {
     user.bannedBy = req.user._id;
     await user.save();
 
-    res.status(200).json({ message: "User banned successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "User banned successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -450,7 +518,9 @@ const unbanUser = async (req, res) => {
     user.bannedBy = null;
     await user.save();
 
-    res.status(200).json({ message: "User unbanned successfully", id: req.params.id });
+    res
+      .status(200)
+      .json({ message: "User unbanned successfully", id: req.params.id });
   } catch (error) {
     res.status(res.statusCode === 200 ? 500 : res.statusCode);
     throw new Error(error.message);
@@ -527,6 +597,7 @@ module.exports = {
   getAllAdmins,
   createAdmin,
   updateAdmin,
+  deleteAdmin,
   deactivateAdmin,
   reactivateAdmin,
   // Users

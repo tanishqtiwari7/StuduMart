@@ -15,6 +15,7 @@ const {
   getAllAdmins,
   createAdmin,
   updateAdmin,
+  deleteAdmin,
   deactivateAdmin,
   reactivateAdmin,
   // Users
@@ -45,6 +46,7 @@ router.delete("/clubs/:id", superAdminProtect, deleteClub);
 router.get("/admins", superAdminProtect, getAllAdmins);
 router.post("/admins", superAdminProtect, createAdmin);
 router.put("/admins/:id", superAdminProtect, updateAdmin);
+router.delete("/admins/:id", superAdminProtect, deleteAdmin);
 router.put("/admins/:id/deactivate", superAdminProtect, deactivateAdmin);
 router.put("/admins/:id/reactivate", superAdminProtect, reactivateAdmin);
 

@@ -4,7 +4,11 @@ const crypto = require("crypto");
 const { sendEmail } = require("../utils/sendEmail");
 const User = require("../models/userModel");
 const Branch = require("../models/branchModel");
-const { sendOTPEmail, generateOTP, sendWelcomeEmail } = require("../utils/sendEmail");
+const {
+  sendOTPEmail,
+  generateOTP,
+  sendWelcomeEmail,
+} = require("../utils/sendEmail");
 
 // Generate Token
 const generateToken = (id) => {
@@ -16,13 +20,16 @@ const generateToken = (id) => {
 // @access  Public
 const registerUser = async (req, res) => {
   try {
-    let { name, email, phone, password, branch, enrollmentYear, rollNumber } = req.body;
+    let { name, email, phone, password, branch, enrollmentYear, rollNumber } =
+      req.body;
 
     // Validate required fields
     if (!name || !email || !phone || !password) {
       res.status(400);
       throw new Error("Please fill all required details");
     }
+
+    email = email.trim();
 
     // Enforce @acropolis.in email domain with Regex
     const emailRegex = /^[a-zA-Z0-9._%+-]+@acropolis\.in$/;
@@ -51,15 +58,15 @@ const registerUser = async (req, res) => {
         emailExist.emailOTP = { code: otp, expiresAt: otpExpiry };
         emailExist.name = name;
         emailExist.phone = phone;
-        
+
         // Re-hash password
         const salt = await bcrypt.genSalt(10);
         emailExist.password = await bcrypt.hash(password, salt);
-        
+
         if (branch) emailExist.branch = branch;
         if (enrollmentYear) emailExist.enrollmentYear = enrollmentYear;
         if (rollNumber) emailExist.rollNumber = rollNumber;
-        
+
         await emailExist.save();
 
         // Send OTP email
@@ -72,7 +79,9 @@ const registerUser = async (req, res) => {
         });
       }
       res.status(409); // Conflict
-      throw new Error("This email is already registered. Please login instead.");
+      throw new Error(
+        "This email is already registered. Please login instead."
+      );
     }
 
     if (phoneExist) {
@@ -193,6 +202,8 @@ const verifyOTP = async (req, res) => {
       isEmailVerified: user.isEmailVerified,
       isActive: user.isActive,
       isAdmin: user.isAdmin,
+      organizationType: user.organizationType,
+      organizationId: user.organizationId,
       createdAt: user.createdAt,
       token: generateToken(user._id),
     });
@@ -258,8 +269,22 @@ const loginUser = async (req, res) => {
       throw new Error("Please fill all details");
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() })
-      .populate("branch", "name code");
+    let user = await User.findOne({
+      email: email.toLowerCase().trim(),
+    }).populate("branch", "name code");
+
+    // Self-healing: If strict match fails, try loose match and fix it
+    if (!user) {
+      const looseUser = await User.findOne({
+        email: { $regex: new RegExp(`^${email.trim()}$`, "i") },
+      }).populate("branch", "name code");
+
+      if (looseUser) {
+        looseUser.email = looseUser.email.toLowerCase().trim();
+        await looseUser.save();
+        user = looseUser;
+      }
+    }
 
     if (!user) {
       res.status(401);
@@ -278,10 +303,10 @@ const loginUser = async (req, res) => {
       // Generate new OTP and send
       const otp = generateOTP();
       const otpExpiry = new Date(Date.now() + 10 * 60 * 1000);
-      
+
       user.emailOTP = { code: otp, expiresAt: otpExpiry };
       await user.save();
-      
+
       await sendOTPEmail(user.email, otp, user.name);
 
       return res.status(403).json({
@@ -316,6 +341,8 @@ const loginUser = async (req, res) => {
       isEmailVerified: user.isEmailVerified,
       isActive: user.isActive,
       isAdmin: user.isAdmin,
+      organizationType: user.organizationType,
+      organizationId: user.organizationId,
       createdAt: user.createdAt,
       token: generateToken(user._id),
     });
@@ -454,7 +481,7 @@ const resetPassword = async (req, res) => {
     // Set new password
     const salt = await bcrypt.genSalt(10);
     user.password = await bcrypt.hash(req.body.password, salt);
-    
+
     user.resetPasswordToken = undefined;
     user.resetPasswordExpire = undefined;
 

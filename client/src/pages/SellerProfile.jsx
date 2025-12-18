@@ -6,6 +6,8 @@ import ProductCard from "../components/ProductCard";
 import Loader from "../components/Loader";
 import { MapPin, Calendar, Mail, Phone, User as UserIcon } from "lucide-react";
 import axios from "axios";
+import { Card, CardContent } from "../components/ui/card";
+import { Badge } from "../components/ui/badge";
 
 const SellerProfile = () => {
   const { id } = useParams();
@@ -39,12 +41,12 @@ const SellerProfile = () => {
     <div className="min-h-screen bg-slate-50 pt-24 pb-12">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Profile Header */}
-        <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden mb-8">
+        <Card className="mb-8 overflow-hidden border-slate-200 shadow-sm">
           <div className="h-32 bg-gradient-to-r from-indigo-500 to-purple-600"></div>
-          <div className="px-8 pb-8">
+          <CardContent className="px-8 pb-8 pt-0">
             <div className="relative flex justify-between items-end -mt-12 mb-6">
               <div className="flex items-end gap-6">
-                <div className="w-24 h-24 rounded-full border-4 border-white bg-slate-200 overflow-hidden">
+                <div className="w-24 h-24 rounded-full border-4 border-white bg-slate-200 overflow-hidden flex items-center justify-center">
                   {user.profile?.avatar ? (
                     <img
                       src={user.profile.avatar}
@@ -52,9 +54,7 @@ const SellerProfile = () => {
                       className="w-full h-full object-cover"
                     />
                   ) : (
-                    <div className="w-full h-full flex items-center justify-center bg-slate-100 text-slate-400">
-                      <UserIcon size={40} />
-                    </div>
+                    <UserIcon size={40} className="text-slate-400" />
                   )}
                 </div>
                 <div className="mb-1">
@@ -81,38 +81,46 @@ const SellerProfile = () => {
 
                 <div className="flex flex-wrap gap-4">
                   {user.university && (
-                    <div className="flex items-center gap-2 text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg">
-                      <MapPin size={18} />
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-normal"
+                    >
+                      <MapPin size={16} />
                       <span>{user.university}</span>
-                    </div>
+                    </Badge>
                   )}
                   {user.profile?.graduationYear && (
-                    <div className="flex items-center gap-2 text-slate-600 bg-slate-50 px-3 py-1.5 rounded-lg">
-                      <Calendar size={18} />
+                    <Badge
+                      variant="secondary"
+                      className="flex items-center gap-2 px-3 py-1.5 text-sm font-normal"
+                    >
+                      <Calendar size={16} />
                       <span>Class of {user.profile.graduationYear}</span>
-                    </div>
+                    </Badge>
                   )}
                 </div>
               </div>
 
-              <div className="bg-slate-50 rounded-xl p-6 space-y-4">
-                <h3 className="font-semibold text-slate-900">Contact Info</h3>
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3 text-slate-600">
-                    <Mail size={18} />
-                    <span>{user.email}</span>
-                  </div>
-                  {user.phone && (
+              <Card className="bg-slate-50 border-none shadow-none">
+                <CardContent className="p-6 space-y-4">
+                  <h3 className="font-semibold text-slate-900">Contact Info</h3>
+                  <div className="space-y-3">
                     <div className="flex items-center gap-3 text-slate-600">
-                      <Phone size={18} />
-                      <span>{user.phone}</span>
+                      <Mail size={18} />
+                      <span>{user.email}</span>
                     </div>
-                  )}
-                </div>
-              </div>
+                    {user.phone && (
+                      <div className="flex items-center gap-3 text-slate-600">
+                        <Phone size={18} />
+                        <span>{user.phone}</span>
+                      </div>
+                    )}
+                  </div>
+                </CardContent>
+              </Card>
             </div>
-          </div>
-        </div>
+          </CardContent>
+        </Card>
 
         {/* User's Listings */}
         <h2 className="text-xl font-bold text-slate-900 mb-6">
@@ -127,9 +135,11 @@ const SellerProfile = () => {
             ))}
           </div>
         ) : (
-          <div className="text-center py-12 bg-white rounded-xl border border-slate-200 border-dashed">
-            <p className="text-slate-500">No active listings found.</p>
-          </div>
+          <Card className="border-slate-200 border-dashed shadow-none">
+            <CardContent className="p-12 text-center text-slate-500">
+              No active listings found.
+            </CardContent>
+          </Card>
         )}
       </div>
     </div>

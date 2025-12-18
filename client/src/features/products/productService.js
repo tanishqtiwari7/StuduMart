@@ -10,13 +10,9 @@ const fetchProduct = async (id) => {
   return response.data;
 };
 
-const update = async (formData, token) => {
+const update = async (id, data, token) => {
   const options = { headers: { authorization: `Bearer ${token}` } };
-  const response = await axios.put(
-    "/api/product/" + formData._id,
-    formData,
-    options
-  );
+  const response = await axios.put("/api/product/" + id, data, options);
   return response.data;
 };
 
@@ -50,6 +46,15 @@ const markSold = async (id, token) => {
   return response.data;
 };
 
-const productService = { fetchProducts, fetchProduct, update, add, remove, approve, reject, markSold };
+const productService = {
+  fetchProducts,
+  fetchProduct,
+  update,
+  add,
+  remove,
+  approve,
+  reject,
+  markSold,
+};
 
 export default productService;

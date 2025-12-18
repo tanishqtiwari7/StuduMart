@@ -12,6 +12,7 @@ const userSchema = new mongoose.Schema(
       unique: true,
       required: [true, "Please Enter Email"],
       lowercase: true,
+      trim: true,
     },
     phone: {
       type: String,
@@ -41,7 +42,7 @@ const userSchema = new mongoose.Schema(
       enum: ["student", "admin", "superadmin"],
       default: "student",
     },
-    
+
     // ==================== BRANCH (For Students) ====================
     branch: {
       type: mongoose.Schema.Types.ObjectId,
@@ -63,7 +64,13 @@ const userSchema = new mongoose.Schema(
         },
         role: {
           type: String,
-          enum: ["member", "coordinator", "secretary", "vicePresident", "president"],
+          enum: [
+            "member",
+            "coordinator",
+            "secretary",
+            "vicePresident",
+            "president",
+          ],
           default: "member",
         },
         joinedAt: {
@@ -72,7 +79,7 @@ const userSchema = new mongoose.Schema(
         },
       },
     ],
-    
+
     // ==================== BADGES ====================
     badges: [
       {
@@ -89,7 +96,7 @@ const userSchema = new mongoose.Schema(
     // ==================== ORGANIZATION (For Admins) ====================
     organizationType: {
       type: String,
-      enum: ["club", "department", "none"],
+      enum: ["Club", "Branch", "none"],
       default: "none",
     },
     organizationId: {

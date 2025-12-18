@@ -12,6 +12,8 @@ import {
   User,
   LayoutDashboard,
 } from "lucide-react";
+import { Button } from "./ui/button";
+import { cn } from "../lib/utils";
 
 const Header = () => {
   const { user } = useSelector((state) => state.auth);
@@ -34,64 +36,82 @@ const Header = () => {
     navigate("/login");
   };
 
-  // Hide Header on Login/Register pages
-  if (['/login', '/register', '/forgot-password'].includes(location.pathname) || location.pathname.startsWith('/reset-password')) {
-    return null;
-  }
-
   const getNavLinks = () => {
     const links = [{ path: "/", label: "Home", icon: <Home size={20} /> }];
-    
+
     if (user?.role === "student") {
-        links.push(
-            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> },
-            { path: "/events", label: "Events", icon: <Calendar size={20} /> }
-        );
+      links.push(
+        {
+          path: "/marketplace",
+          label: "Marketplace",
+          icon: <ShoppingBag size={20} />,
+        },
+        { path: "/events", label: "Events", icon: <Calendar size={20} /> }
+      );
     } else if (user?.role === "admin") {
-         links.push(
-            { path: "/auth/admin", label: "Dashboard", icon: <LayoutDashboard size={20} /> },
-             // Admins still might want to see the public marketplace
-            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> }
-        );
+      let label = "Dashboard";
+      const orgType = user?.organizationType?.toLowerCase();
+
+      if (orgType === "branch") {
+        label = "Department Admin";
+      } else if (orgType === "club") {
+        label = "Club Admin";
+      } else {
+        label = "Admin Dashboard";
+      }
+      links.push({
+        path: "/auth/admin",
+        label: label,
+        icon: <LayoutDashboard size={20} />,
+      });
     } else if (user?.role === "superadmin") {
-        links.push({ path: "/auth/superadmin", label: "Admin Panel", icon: <LayoutDashboard size={20} /> });
+      links.push({
+        path: "/auth/superadmin",
+        label: "Admin Panel",
+        icon: <LayoutDashboard size={20} />,
+      });
     } else {
-        // Public / Guest links
-        links.push(
-            { path: "/marketplace", label: "Marketplace", icon: <ShoppingBag size={20} /> },
-            { path: "/events", label: "Events", icon: <Calendar size={20} /> }
-        );
+      links.push(
+        {
+          path: "/marketplace",
+          label: "Marketplace",
+          icon: <ShoppingBag size={20} />,
+        },
+        { path: "/events", label: "Events", icon: <Calendar size={20} /> }
+      );
     }
     return links;
   };
 
   const navLinks = getNavLinks();
-
   const isActive = (path) => location.pathname === path;
 
   return (
     <header
-      className={`fixed top-0 left-0 right-0 z-50 transition-all duration-300 ${
+      className={cn(
+        "fixed top-0 left-0 right-0 z-50 transition-all duration-300",
         scrolled
           ? "bg-white shadow-md border-b border-slate-100"
           : "bg-[#0a0a38] shadow-lg"
-      }`}
+      )}
     >
       <nav className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo Section */}
           <Link to="/" className="flex items-center space-x-2 group">
             <div
-              className={`p-2 rounded-lg transition-colors ${
+              className={cn(
+                "p-2 rounded-lg transition-colors",
                 scrolled ? "bg-[#0a0a38] text-white" : "bg-white text-[#0a0a38]"
-              }`}
+              )}
             >
               <ShoppingBag size={24} strokeWidth={2.5} />
             </div>
             <span
-              className={`text-xl font-bold tracking-tight ${
+              className={cn(
+                "text-xl font-bold tracking-tight",
                 scrolled ? "text-slate-900" : "text-white"
-              }`}
+              )}
             >
               StuduMart
             </span>
@@ -103,7 +123,8 @@ const Header = () => {
               <Link
                 key={link.path}
                 to={link.path}
-                className={`flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200 ${
+                className={cn(
+                  "flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200",
                   isActive(link.path)
                     ? scrolled
                       ? "bg-blue-50 text-[#0a0a38]"
@@ -111,7 +132,7 @@ const Header = () => {
                     : scrolled
                     ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                     : "text-blue-100 hover:bg-white/10 hover:text-white"
-                }`}
+                )}
               >
                 {link.icon}
                 <span>{link.label}</span>
@@ -124,51 +145,58 @@ const Header = () => {
             {user ? (
               <div className="flex items-center space-x-4">
                 <Link
-                  to="/my-profile"
-                  className={`flex items-center space-x-2 text-sm font-medium ${
+                  to="/auth/myprofile"
+                  className={cn(
+                    "flex items-center space-x-2 text-sm font-medium",
                     scrolled
                       ? "text-slate-700 hover:text-slate-900"
-                      : "text-white hover:text-blue-100"
-                  }`}
+                      : "text-white hover:text-slate-200"
+                  )}
                 >
-                  <div className="w-8 h-8 rounded-full bg-blue-100 flex items-center justify-center text-[#0a0a38]">
+                  <div className="w-8 h-8 rounded-full bg-slate-100 flex items-center justify-center text-[#0a0a38]">
                     <User size={16} />
                   </div>
                   <span>{user.name}</span>
                 </Link>
-                <button
+                <Button
+                  variant="ghost"
+                  size="icon"
                   onClick={handleLogout}
-                  className={`p-2 rounded-full transition-colors ${
+                  className={cn(
+                    "rounded-full",
                     scrolled
                       ? "text-slate-400 hover:text-red-600 hover:bg-red-50"
-                      : "text-blue-200 hover:text-white hover:bg-white/10"
-                  }`}
+                      : "text-slate-200 hover:text-white hover:bg-white/10"
+                  )}
                   title="Logout"
                 >
                   <LogOut size={20} />
-                </button>
+                </Button>
               </div>
             ) : (
               <div className="flex items-center space-x-3">
-                <Link
-                  to="/login"
-                  className={`px-4 py-2 text-sm font-medium rounded-md transition-colors ${
-                    scrolled
-                      ? "text-slate-600 hover:text-slate-900"
-                      : "text-white hover:text-blue-100"
-                  }`}
-                >
-                  Login
+                <Link to="/login">
+                  <Button
+                    variant="ghost"
+                    className={cn(
+                      scrolled
+                        ? "text-slate-600 hover:text-slate-900"
+                        : "text-white hover:text-blue-100 hover:bg-white/10"
+                    )}
+                  >
+                    Login
+                  </Button>
                 </Link>
-                <Link
-                  to="/register"
-                  className={`px-4 py-2 text-sm font-medium rounded-md shadow-sm transition-all ${
-                    scrolled
-                      ? "bg-[#0a0a38] text-white hover:bg-slate-900"
-                      : "bg-white text-[#0a0a38] hover:bg-blue-50"
-                  }`}
-                >
-                  Register
+                <Link to="/register">
+                  <Button
+                    className={cn(
+                      scrolled
+                        ? "bg-[#0a0a38] text-white hover:bg-slate-900"
+                        : "bg-white text-[#0a0a38] hover:bg-blue-50"
+                    )}
+                  >
+                    Register
+                  </Button>
                 </Link>
               </div>
             )}
@@ -211,7 +239,7 @@ const Header = () => {
               {user ? (
                 <>
                   <Link
-                    to="/my-profile"
+                    to="/auth/myprofile"
                     onClick={() => setMobileMenuOpen(false)}
                     className="flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium text-slate-600 hover:bg-slate-50"
                   >

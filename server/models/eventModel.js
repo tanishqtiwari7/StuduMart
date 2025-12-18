@@ -22,19 +22,9 @@ const eventSchema = new mongoose.Schema(
       type: Date,
     },
     category: {
-      type: String,
-      enum: [
-        "Social",
-        "Academic",
-        "Sports",
-        "Workshops",
-        "Clubs",
-        "Parties",
-        "Cultural",
-        "Technical",
-        "Other",
-      ],
-      default: "Other",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "Please Select Event Category"],
     },
     status: {
       type: String,
@@ -46,7 +36,7 @@ const eventSchema = new mongoose.Schema(
       type: String,
       required: [true, "Please Fill Event Location"],
     },
-    
+
     // Capacity management
     capacity: {
       type: Number,
@@ -144,15 +134,15 @@ eventSchema.pre("save", function (next) {
     ).length;
     this.availableSeats = Math.max(0, this.capacity - goingCount);
   }
-  
+
   // Set isFree based on price
   this.isFree = this.price === 0;
-  
+
   // Initialize visibility if not set
   if (!this.visibility) {
     this.visibility = { type: "all", branches: [], clubs: [] };
   }
-  
+
   next();
 });
 

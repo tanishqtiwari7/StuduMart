@@ -26,7 +26,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
 
   useEffect(() => {
     if (isSuccess && isOpen) {
-        // Close modal and redirect only after successful verification
+      // Close modal and redirect only after successful verification
       toast.success("Email verified successfully!");
       onClose();
       dispatch(resetAuth());
@@ -34,7 +34,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
     }
     if (isError && isOpen) {
       toast.error(message);
-      dispatch(resetAuth()); 
+      dispatch(resetAuth());
     }
   }, [isSuccess, isError, message, isOpen, onClose, dispatch, navigate]);
 
@@ -82,7 +82,7 @@ const OTPModal = ({ isOpen, onClose, email }) => {
           <div className="flex justify-center gap-2 mb-8">
             {otp.map((data, index) => (
               <input
-                className="w-12 h-12 text-center text-2xl font-bold border-2 border-slate-200 rounded-lg focus:border-[#0a0a38] focus:outline-none transition-colors"
+                className="w-12 h-12 text-center text-2xl font-bold border-2 border-slate-200 rounded-lg bg-white focus:border-[#0a0a38] focus:outline-none transition-colors"
                 type="text"
                 name="otp"
                 maxLength="1"
@@ -91,9 +91,13 @@ const OTPModal = ({ isOpen, onClose, email }) => {
                 onChange={(e) => handleChange(e.target, index)}
                 onFocus={(e) => e.target.select()}
                 onKeyDown={(e) => {
-                    if (e.key === "Backspace" && !otp[index] && e.target.previousSibling) {
-                        e.target.previousSibling.focus();
-                    }
+                  if (
+                    e.key === "Backspace" &&
+                    !otp[index] &&
+                    e.target.previousSibling
+                  ) {
+                    e.target.previousSibling.focus();
+                  }
                 }}
               />
             ))}

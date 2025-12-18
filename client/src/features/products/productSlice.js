@@ -125,21 +125,21 @@ const productSlice = createSlice({
       })
       // Approve
       .addCase(approveProduct.fulfilled, (state, action) => {
-         state.allProducts = state.allProducts.map(p => 
-            p._id === action.payload._id ? action.payload : p
-         );
+        state.allProducts = state.allProducts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
       })
       // Reject
       .addCase(rejectProduct.fulfilled, (state, action) => {
-         state.allProducts = state.allProducts.map(p => 
-            p._id === action.payload._id ? action.payload : p
-         );
+        state.allProducts = state.allProducts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
       })
       // Mark Sold
       .addCase(markSoldProduct.fulfilled, (state, action) => {
-         state.allProducts = state.allProducts.map(p => 
-            p._id === action.payload._id ? action.payload : p
-         );
+        state.allProducts = state.allProducts.map((p) =>
+          p._id === action.payload._id ? action.payload : p
+        );
       });
   },
 });
@@ -176,11 +176,32 @@ export const getProduct = createAsyncThunk(
 // Update Product
 export const updateProduct = createAsyncThunk(
   "UPDATE/PRODUCT",
-  async (formData, thunkAPI) => {
+  async (payload, thunkAPI) => {
     let token = thunkAPI.getState().auth.user.token;
 
+    let id, data;
+    if (payload instanceof FormData) {
+      // If it's FormData, we can't check ._id directly.
+      // We should expect the caller to pass { id, data } if using FormData.
+      // But wait, if I change the caller to always pass { id, data }, it's safer.
+      // However, to support legacy calls (if any), I need to be careful.
+      // But I am the one changing the caller in MyProfile.jsx.
+      // Are there other callers?
+      // I'll assume payload has id and data if it's the new format.
+      // If payload has _id, it's the old format (plain object).
+      id = payload.id;
+      data = payload.data;
+    } else if (payload._id) {
+      id = payload._id;
+      data = payload;
+    } else {
+      // Fallback or error
+      id = payload.id;
+      data = payload.data;
+    }
+
     try {
-      return await productService.update(formData, token);
+      return await productService.update(id, data, token);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);
@@ -225,7 +246,7 @@ export const approveProduct = createAsyncThunk(
     try {
       return await productService.approve(id, token);
     } catch (error) {
-       const message = error.response?.data?.message || error.message;
+      const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -239,7 +260,7 @@ export const rejectProduct = createAsyncThunk(
     try {
       return await productService.reject(id, token);
     } catch (error) {
-       const message = error.response?.data?.message || error.message;
+      const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);
     }
   }
@@ -253,7 +274,7 @@ export const markSoldProduct = createAsyncThunk(
     try {
       return await productService.markSold(id, token);
     } catch (error) {
-       const message = error.response?.data?.message || error.message;
+      const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);
     }
   }

@@ -2,6 +2,7 @@ import React, { useEffect, useState } from "react";
 import { useDispatch, useSelector } from "react-redux";
 import { useNavigate } from "react-router-dom";
 import { addEvent, updateEvent } from "../features/admin/adminSlice";
+import { getCategories } from "../features/categories/categorySlice";
 import {
   Calendar,
   MapPin,
@@ -11,12 +12,27 @@ import {
   User,
   FileText,
   Check,
+  Tag,
 } from "lucide-react";
+import { Button } from "./ui/button";
+import { Input } from "./ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+} from "./ui/card";
 
 const AddEvent = () => {
   const { edit } = useSelector((state) => state.admin);
+  const { categories } = useSelector((state) => state.category);
   const dispatch = useDispatch();
   const navigate = useNavigate();
+
+  useEffect(() => {
+    dispatch(getCategories("event"));
+  }, [dispatch]);
 
   const [formData, setFormData] = useState({
     eventName: "",
@@ -28,6 +44,7 @@ const AddEvent = () => {
     availableSeats: "",
     organizer: "",
     price: "",
+    category: "",
   });
 
   const {
@@ -40,6 +57,7 @@ const AddEvent = () => {
     availableSeats,
     organizer,
     price,
+    category,
   } = formData;
 
   const handleChange = (e) => {
@@ -59,7 +77,8 @@ const AddEvent = () => {
       !eventDescription ||
       !eventDate ||
       !location ||
-      !organizer
+      !organizer ||
+      !category
     ) {
       alert("Please fill all required fields");
       return;
@@ -81,6 +100,7 @@ const AddEvent = () => {
         availableSeats: "",
         organizer: "",
         price: "",
+        category: "",
       });
     } catch (error) {
       console.error("Failed to save event:", error);
@@ -94,43 +114,184 @@ const AddEvent = () => {
   }, [edit.isEdit, edit.event]);
 
   return (
-    <div className="max-w-4xl mx-auto">
-      <div className="mb-8">
-        <h1 className="text-2xl font-bold text-slate-900 mb-2">
-          {edit.isEdit ? "Edit Event" : "Add New Event"}
-        </h1>
-        <p className="text-slate-600">
+    <Card className="border-slate-200 shadow-sm">
+      <CardHeader>
+        <CardTitle>{edit.isEdit ? "Edit Event" : "Create New Event"}</CardTitle>
+        <CardDescription>
           Fill in the details below to{" "}
           {edit.isEdit ? "update the" : "create a new"} event.
-        </p>
-      </div>
-
-      <form
-        onSubmit={handleAddEvent}
-        className="bg-white rounded-xl shadow-sm border border-slate-200 p-6 space-y-6"
-      >
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Event Title
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <FileText className="h-5 w-5 text-slate-400" />
+        </CardDescription>
+      </CardHeader>
+      <CardContent>
+        <form onSubmit={handleAddEvent} className="space-y-6">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Event Name
+              </label>
+              <div className="relative">
+                <FileText
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="text"
+                  name="eventName"
+                  value={eventName}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="e.g. Tech Symposium 2024"
+                />
               </div>
-              <input
-                name="eventName"
-                value={eventName}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="text"
-                placeholder="e.g. Annual Tech Symposium"
-              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Category
+              </label>
+              <div className="relative">
+                <Tag
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <select
+                  name="category"
+                  value={category}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 pl-10 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Date & Time
+              </label>
+              <div className="relative">
+                <Calendar
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="datetime-local"
+                  name="eventDate"
+                  value={eventDate}
+                  onChange={handleChange}
+                  className="pl-10"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Location
+              </label>
+              <div className="relative">
+                <MapPin
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="text"
+                  name="location"
+                  value={location}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="e.g. Main Auditorium"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Organizer
+              </label>
+              <div className="relative">
+                <User
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="text"
+                  name="organizer"
+                  value={organizer}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="e.g. Computer Science Dept"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Available Seats
+              </label>
+              <div className="relative">
+                <Users
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="number"
+                  name="availableSeats"
+                  value={availableSeats}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="e.g. 100"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Price (₹)
+              </label>
+              <div className="relative">
+                <DollarSign
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="number"
+                  name="price"
+                  value={price}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="0 for free events"
+                />
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Image URL
+              </label>
+              <div className="relative">
+                <Image
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
+                  type="text"
+                  name="eventImage"
+                  value={eventImage}
+                  onChange={handleChange}
+                  className="pl-10"
+                  placeholder="https://..."
+                />
+              </div>
             </div>
           </div>
 
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
+          <div className="space-y-2">
+            <label className="text-sm font-medium text-slate-700">
               Description
             </label>
             <textarea
@@ -138,153 +299,23 @@ const AddEvent = () => {
               value={eventDescription}
               onChange={handleChange}
               rows={4}
-              className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-              placeholder="Describe the event..."
+              className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+              placeholder="Detailed description of the event..."
             />
           </div>
 
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Date
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Calendar className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="eventDate"
-                value={eventDate}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="date"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Status
-            </label>
-            <select
-              name="status"
-              value={status}
-              onChange={handleChange}
-              className="block w-full px-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
+          <div className="flex justify-end pt-4">
+            <Button
+              type="submit"
+              className="bg-[#0a0a38] hover:bg-slate-900 w-full md:w-auto"
             >
-              <option value="upcoming">Upcoming</option>
-              <option value="ongoing">Ongoing</option>
-              <option value="completed">Completed</option>
-              <option value="postponed">Postponed</option>
-            </select>
+              <Check size={20} className="mr-2" />
+              {edit.isEdit ? "Update Event" : "Create Event"}
+            </Button>
           </div>
-
-          <div className="col-span-2">
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Image URL
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Image className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="eventImage"
-                value={eventImage}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="text"
-                placeholder="https://example.com/image.jpg"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Location
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <MapPin className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="location"
-                value={location}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="text"
-                placeholder="e.g. Main Auditorium"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Organizer
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <User className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="organizer"
-                value={organizer}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="text"
-                placeholder="e.g. Student Council"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Available Seats
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <Users className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="availableSeats"
-                value={availableSeats}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="number"
-                placeholder="0"
-              />
-            </div>
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-slate-700 mb-1">
-              Price (₹)
-            </label>
-            <div className="relative">
-              <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-                <DollarSign className="h-5 w-5 text-slate-400" />
-              </div>
-              <input
-                name="price"
-                value={price}
-                onChange={handleChange}
-                className="block w-full pl-10 pr-3 py-2 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm"
-                type="number"
-                placeholder="0"
-              />
-            </div>
-          </div>
-        </div>
-
-        <div className="pt-4 border-t border-slate-100 flex justify-end">
-          <button
-            type="submit"
-            className="px-6 py-2 bg-[#0a0a38] text-white rounded-lg font-medium hover:bg-[#050520] transition-colors flex items-center gap-2 shadow-sm"
-          >
-            <Check size={20} />
-            {edit.isEdit ? "Update Event" : "Create Event"}
-          </button>
-        </div>
-      </form>
-    </div>
+        </form>
+      </CardContent>
+    </Card>
   );
 };
 

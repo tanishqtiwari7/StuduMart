@@ -7,21 +7,80 @@ const Branch = require("./models/branchModel");
 const Club = require("./models/clubModel");
 const Listing = require("./models/listingModel");
 const Event = require("./models/eventModel");
+const Category = require("./models/categoryModel");
 const connectDB = require("./config/dbConfig");
 
 dotenv.config();
 
 connectDB();
 
+// Default Categories
+const defaultEventCategories = [
+  "Social",
+  "Academic",
+  "Sports",
+  "Workshops",
+  "Clubs",
+  "Parties",
+  "Cultural",
+  "Technical",
+  "Other",
+];
+
+const defaultListingCategories = [
+  "electronics",
+  "textbooks",
+  "furniture",
+  "clothing",
+  "tickets",
+  "free",
+  "other",
+];
+
 // Default B.Tech Branches
 const defaultBranches = [
-  { name: "Computer Science Engineering", code: "CSE", department: "Engineering", degree: "B.Tech" },
-  { name: "Electronics & Communication Engineering", code: "ECE", department: "Engineering", degree: "B.Tech" },
-  { name: "Mechanical Engineering", code: "ME", department: "Engineering", degree: "B.Tech" },
-  { name: "Civil Engineering", code: "CE", department: "Engineering", degree: "B.Tech" },
-  { name: "Electrical Engineering", code: "EE", department: "Engineering", degree: "B.Tech" },
-  { name: "Information Technology", code: "IT", department: "Engineering", degree: "B.Tech" },
-  { name: "Artificial Intelligence & Data Science", code: "AIDS", department: "Engineering", degree: "B.Tech" },
+  {
+    name: "Computer Science Engineering",
+    code: "CSE",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Electronics & Communication Engineering",
+    code: "ECE",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Mechanical Engineering",
+    code: "ME",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Civil Engineering",
+    code: "CE",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Electrical Engineering",
+    code: "EE",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Information Technology",
+    code: "IT",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
+  {
+    name: "Artificial Intelligence & Data Science",
+    code: "AIDS",
+    department: "Engineering",
+    degree: "B.Tech",
+  },
 ];
 
 // Super Admin Configuration
@@ -40,9 +99,12 @@ const initializeSuperAdmin = async () => {
   try {
     // Check if super admin already exists
     const existingSuperAdmin = await User.findOne({ role: "superadmin" });
-    
+
     if (existingSuperAdmin) {
-      console.log("✅ Super Admin already exists:".green, existingSuperAdmin.email);
+      console.log(
+        "✅ Super Admin already exists:".green,
+        existingSuperAdmin.email
+      );
       return existingSuperAdmin;
     }
 
@@ -59,7 +121,7 @@ const initializeSuperAdmin = async () => {
     console.log("   Email:".cyan, SUPER_ADMIN.email);
     console.log("   Password:".cyan, SUPER_ADMIN.password);
     console.log("   ⚠️  Please change the password after first login!".yellow);
-    
+
     return superAdmin;
   } catch (error) {
     console.error("Error creating Super Admin:".red, error.message);
@@ -70,21 +132,23 @@ const initializeSuperAdmin = async () => {
 const initializeBranches = async (superAdminId) => {
   try {
     const existingBranches = await Branch.countDocuments();
-    
+
     if (existingBranches > 0) {
       console.log(`✅ ${existingBranches} Branches already exist`.green);
       return;
     }
 
-    const branchesWithCreator = defaultBranches.map(branch => ({
+    const branchesWithCreator = defaultBranches.map((branch) => ({
       ...branch,
       createdBy: superAdminId,
     }));
 
     await Branch.insertMany(branchesWithCreator);
-    console.log(`🏛️  Created ${defaultBranches.length} default branches`.green.bold);
-    
-    defaultBranches.forEach(b => {
+    console.log(
+      `🏛️  Created ${defaultBranches.length} default branches`.green.bold
+    );
+
+    defaultBranches.forEach((b) => {
       console.log(`   - ${b.code}: ${b.name}`.cyan);
     });
   } catch (error) {
@@ -93,19 +157,53 @@ const initializeBranches = async (superAdminId) => {
   }
 };
 
+const initializeCategories = async () => {
+  try {
+    const existingCategories = await Category.countDocuments();
+    if (existingCategories > 0) {
+      console.log(`✅ ${existingCategories} Categories already exist`.green);
+      return;
+    }
+
+    const eventCats = defaultEventCategories.map((name) => ({
+      name,
+      type: "event",
+      description: `${name} events`,
+    }));
+
+    const listingCats = defaultListingCategories.map((name) => ({
+      name,
+      type: "listing",
+      description: `${name} items`,
+    }));
+
+    await Category.insertMany([...eventCats, ...listingCats]);
+    console.log(
+      `🏷️  Created ${eventCats.length + listingCats.length} default categories`
+        .green.bold
+    );
+  } catch (error) {
+    console.error("Error creating categories:".red, error.message);
+    throw error;
+  }
+};
+
 const importData = async () => {
   try {
     console.log("\n🚀 StuduMart Database Initialization\n".blue.bold);
-    
+
     // Step 1: Create Super Admin
     const superAdmin = await initializeSuperAdmin();
-    
+
     // Step 2: Create Default Branches
     await initializeBranches(superAdmin._id);
-    
+
+    // Step 3: Create Default Categories
+    await initializeCategories();
+
     console.log("\n✨ Initialization Complete!".green.bold);
     console.log("   You can now login as Super Admin and create clubs.\n");
-    
+
     process.exit();
   } catch (error) {
     console.error(`\n❌ Error: ${error.message}`.red.bold);
@@ -116,12 +214,13 @@ const importData = async () => {
 const destroyData = async () => {
   try {
     console.log("\n🗑️  Destroying all data...".red.bold);
-    
+
     await User.deleteMany();
     await Branch.deleteMany();
     await Club.deleteMany();
     await Listing.deleteMany();
     await Event.deleteMany();
+    await Category.deleteMany();
 
     console.log("✅ All data destroyed!".red.bold);
     process.exit();
@@ -138,7 +237,10 @@ if (process.argv[2] === "-d") {
   importData();
 } else {
   console.log("\nUsage:".yellow);
-  console.log("  node seeder.js -init".cyan, "  Initialize Super Admin & Branches");
+  console.log(
+    "  node seeder.js -init".cyan,
+    "  Initialize Super Admin & Branches"
+  );
   console.log("  node seeder.js -d".cyan, "     Destroy all data\n");
   process.exit();
 }

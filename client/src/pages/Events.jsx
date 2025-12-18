@@ -5,6 +5,8 @@ import { getEvents } from "../features/events/eventsSlice";
 import Loader from "../components/Loader";
 import { toast } from "react-toastify";
 import { Search, ChevronLeft, ChevronRight } from "lucide-react";
+import { Input } from "../components/ui/input";
+import { Button } from "../components/ui/button";
 
 const Events = () => {
   const {
@@ -70,15 +72,13 @@ const Events = () => {
 
         <div className="mb-8 max-w-xl mx-auto">
           <div className="relative">
-            <div className="absolute inset-y-0 left-0 pl-3 flex items-center pointer-events-none">
-              <Search className="h-5 w-5 text-slate-400" />
-            </div>
-            <input
+            <Search className="absolute left-3 top-2.5 h-5 w-5 text-slate-400" />
+            <Input
               type="text"
               value={searchQuery}
               onChange={handleSearchChange}
               placeholder="Search events by name or location..."
-              className="w-full pl-10 pr-4 py-3 border border-slate-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 transition-shadow"
+              className="pl-10"
             />
           </div>
         </div>
@@ -98,25 +98,27 @@ const Events = () => {
             {/* Pagination */}
             {pages > 1 && (
               <div className="mt-12 flex justify-center items-center gap-4">
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => handlePageChange(currentPage - 1)}
                   disabled={currentPage === 1}
-                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronLeft size={20} />
-                </button>
+                </Button>
 
                 <span className="text-slate-600 font-medium">
                   Page {currentPage} of {pages}
                 </span>
 
-                <button
+                <Button
+                  variant="outline"
+                  size="icon"
                   onClick={() => handlePageChange(currentPage + 1)}
                   disabled={currentPage === pages}
-                  className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                 >
                   <ChevronRight size={20} />
-                </button>
+                </Button>
               </div>
             )}
           </>

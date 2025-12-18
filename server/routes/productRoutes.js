@@ -10,6 +10,7 @@ const {
   markSold,
 } = require("../controllers/productController");
 const { protect } = require("../middleware/authMiddleware");
+const upload = require("../middleware/uploadMiddleware");
 
 const router = express.Router();
 
@@ -22,9 +23,9 @@ router.put("/:id/sold", protect, markSold);
 
 // CRUD
 router.get("/", getProducts);
-router.post("/", protect, addProduct);
+router.post("/", protect, upload.array("images", 3), addProduct);
 router.get("/:id", getProduct);
-router.put("/:id", protect, updateProduct);
+router.put("/:id", protect, upload.array("images", 3), updateProduct);
 router.delete("/:id", protect, deleteProduct);
 
 module.exports = router;

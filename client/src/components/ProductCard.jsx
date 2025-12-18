@@ -1,50 +1,57 @@
 import { Link } from "react-router-dom";
 import { formatPrice } from "../utils/format";
+import { Card, CardContent, CardFooter } from "./ui/card";
+import { Badge } from "./ui/badge";
 
 const ProductCard = ({ product }) => {
   return (
-    <div className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden hover:-translate-y-1 hover:shadow-lg transition-all duration-300 group h-full flex flex-col">
+    <Card className="h-full overflow-hidden hover:shadow-lg transition-all duration-300 hover:-translate-y-1 border-slate-200 group flex flex-col">
       <Link
         to={`/marketplace/${product._id}`}
         className="block relative h-48 overflow-hidden bg-slate-100"
       >
         <img
-          src={product.itemImage}
+          src={
+            product.images?.[0]?.url ||
+            product.itemImage ||
+            "https://via.placeholder.com/300"
+          }
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
         />
         <div className="absolute top-3 left-3">
-          <span
-            className={`px-3 py-1 text-xs font-semibold rounded-full backdrop-blur-sm ${
+          <Badge
+            variant={product.isAvailable ? "success" : "destructive"}
+            className={`backdrop-blur-sm ${
               product.isAvailable
-                ? "bg-green-100/90 text-green-700"
-                : "bg-red-100/90 text-red-700"
+                ? "bg-green-100/90 text-green-700 hover:bg-green-100/90"
+                : "bg-red-100/90 text-red-700 hover:bg-red-100/90"
             }`}
           >
             {product.isAvailable ? "For Sale" : "Sold"}
-          </span>
+          </Badge>
         </div>
       </Link>
 
-      <div className="p-4 flex flex-col flex-grow">
+      <CardContent className="p-4 flex flex-col flex-grow">
         <Link to={`/marketplace/${product._id}`}>
           <h3 className="font-semibold text-slate-900 text-lg mb-1 line-clamp-2 group-hover:text-[#0a0a38] transition-colors">
             {product.title}
           </h3>
         </Link>
+      </CardContent>
 
-        <div className="mt-auto pt-4 flex items-center justify-between">
-          <div>
-            <p className="text-xl font-bold text-[#0a0a38]">
-              {formatPrice(product.price)}
-            </p>
-            <p className="text-xs text-slate-500 mt-1">
-              By {product.user?.name || "Unknown"}
-            </p>
-          </div>
+      <CardFooter className="p-4 pt-0 mt-auto flex items-center justify-between">
+        <div>
+          <p className="text-xl font-bold text-[#0a0a38]">
+            {formatPrice(product.price)}
+          </p>
+          <p className="text-xs text-slate-500 mt-1">
+            By {product.user?.name || "Unknown"}
+          </p>
         </div>
-      </div>
-    </div>
+      </CardFooter>
+    </Card>
   );
 };
 

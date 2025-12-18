@@ -11,17 +11,9 @@ const listingSchema = new mongoose.Schema(
       required: [true, "Please Fill Product Description"],
     },
     category: {
-      type: String,
-      enum: [
-        "electronics",
-        "textbooks",
-        "furniture",
-        "clothing",
-        "tickets",
-        "free",
-        "other",
-      ],
-      default: "other",
+      type: mongoose.Schema.Types.ObjectId,
+      ref: "Category",
+      required: [true, "Please Select Product Category"],
     },
     price: {
       type: Number, // Changed from String to Number for calculations

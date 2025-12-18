@@ -13,6 +13,8 @@ import {
   ChevronRight,
   Plus,
 } from "lucide-react";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const Marketplace = () => {
   const {
@@ -101,51 +103,46 @@ const Marketplace = () => {
 
           <div className="flex items-center gap-3 w-full md:w-auto">
             {/* Sell Button for Students */}
-             <div className="hidden md:block">
-                <Link
-                    to="/my-profile"
-                    className="flex items-center gap-2 px-4 py-2.5 bg-[#0a0a38] text-white rounded-xl hover:bg-slate-900 transition-colors font-medium shadow-md hover:shadow-lg"
-                >
-                    <Plus size={20} />
-                    <span>Sell Item</span>
-                </Link>
-             </div>
+            <div className="hidden md:block">
+              <Link to="/auth/myprofile?tab=listings&action=add">
+                <Button className="bg-[#0a0a38] hover:bg-slate-900">
+                  <Plus size={20} className="mr-2" />
+                  Sell Item
+                </Button>
+              </Link>
+            </div>
             <div className="relative flex-1 md:w-80">
               <Search
                 className="absolute left-3 top-1/2 -translate-y-1/2 text-slate-400"
                 size={20}
               />
-              <input
+              <Input
                 type="text"
                 placeholder="Search items..."
                 value={filters.search}
                 onChange={handleSearchChange}
-                className="w-full pl-10 pr-4 py-2.5 rounded-xl border border-slate-200 focus:outline-none focus:ring-2 focus:ring-indigo-500 focus:border-transparent shadow-sm"
+                className="pl-10"
               />
             </div>
-            <button
+            <Button
+              variant={showFilters ? "secondary" : "outline"}
+              size="icon"
               onClick={() => setShowFilters(!showFilters)}
-              className={`p-2.5 rounded-xl border transition-colors ${
-                showFilters
-                  ? "bg-indigo-50 border-indigo-200 text-indigo-600"
-                  : "bg-white border-slate-200 text-slate-600 hover:bg-slate-50"
-              }`}
               aria-label="Toggle filters"
             >
               <SlidersHorizontal size={20} />
-            </button>
+            </Button>
           </div>
         </div>
 
         {/* Mobile Sell Button */}
         <div className="md:hidden mb-6">
-            <Link
-                to="/my-profile?tab=listings&action=add" // Optional query params if I want to auto-open
-                className="w-full flex justify-center items-center gap-2 px-4 py-3 bg-[#0a0a38] text-white rounded-xl hover:bg-slate-900 transition-colors font-medium shadow-sm"
-            >
-                <Plus size={20} />
-                <span>Sell Item</span>
-            </Link>
+          <Link to="/auth/myprofile?tab=listings&action=add">
+            <Button className="w-full bg-[#0a0a38] hover:bg-slate-900">
+              <Plus size={20} className="mr-2" />
+              Sell Item
+            </Button>
+          </Link>
         </div>
 
         <div className="flex flex-col lg:flex-row gap-8">
@@ -182,25 +179,27 @@ const Marketplace = () => {
                 {/* Pagination */}
                 {pages > 1 && (
                   <div className="mt-12 flex justify-center items-center gap-4">
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => handlePageChange(currentPage - 1)}
                       disabled={currentPage === 1}
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronLeft size={20} />
-                    </button>
+                    </Button>
 
                     <span className="text-slate-600 font-medium">
                       Page {currentPage} of {pages}
                     </span>
 
-                    <button
+                    <Button
+                      variant="outline"
+                      size="icon"
                       onClick={() => handlePageChange(currentPage + 1)}
                       disabled={currentPage === pages}
-                      className="p-2 rounded-lg border border-slate-200 hover:bg-slate-50 disabled:opacity-50 disabled:cursor-not-allowed transition-colors"
                     >
                       <ChevronRight size={20} />
-                    </button>
+                    </Button>
                   </div>
                 )}
               </>
@@ -216,7 +215,7 @@ const Marketplace = () => {
                   We couldn't find any items matching your search. Try adjusting
                   your filters or search terms.
                 </p>
-                <button
+                <Button
                   onClick={() => {
                     setFilters({
                       priceRange: { min: 0, max: 100000 },
@@ -227,10 +226,10 @@ const Marketplace = () => {
                     });
                     setCurrentPage(1);
                   }}
-                  className="mt-6 px-6 py-2 bg-indigo-600 text-white rounded-lg hover:bg-indigo-700 transition-colors font-medium"
+                  className="mt-6 bg-[#0a0a38] hover:bg-[#121240]"
                 >
                   Clear all filters
-                </button>
+                </Button>
               </div>
             )}
           </div>

@@ -19,15 +19,33 @@ import {
   editProduct,
   getProducts,
   updateProduct,
-  updateProduct,
   deleteProduct,
   markSoldProduct,
 } from "../features/products/productSlice";
 import { toast } from "react-toastify";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { getMessages } from "../features/messages/messageSlice";
 import { logoutUser } from "../features/auth/authSlice";
+import { getCategories } from "../features/categories/categorySlice";
 import { formatPrice } from "../utils/format";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
+import {
+  Card,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  CardDescription,
+  CardFooter,
+} from "../components/ui/card";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../components/ui/dialog";
+import { Badge } from "../components/ui/badge";
 
 const MyProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -35,6 +53,7 @@ const MyProfile = () => {
     (state) => state.products
   );
   const { allMessages, messageLoading } = useSelector((state) => state.message);
+  const { categories } = useSelector((state) => state.category);
 
   const [activeTab, setActiveTab] = useState("listings");
   const [showAddModal, setShowAddModal] = useState(false);
@@ -44,14 +63,40 @@ const MyProfile = () => {
     price: "",
     itemImage: "",
     description: "",
-    category: "General",
+    category: "",
   });
 
   const [myProducts, setMyProducts] = useState([]);
   const [myMessages, setMyMessages] = useState([]);
 
+  const [selectedFiles, setSelectedFiles] = useState([]);
+
   const dispatch = useDispatch();
   const navigate = useNavigate();
+  const location = useLocation();
+
+  useEffect(() => {
+    const params = new URLSearchParams(location.search);
+    const tab = params.get("tab");
+    const action = params.get("action");
+
+    if (tab) {
+      setActiveTab(tab);
+    }
+
+    if (action === "add") {
+      setFormData({
+        title: "",
+        isAvailable: true,
+        price: "",
+        itemImage: "",
+        description: "",
+        category: "",
+      });
+      setSelectedFiles([]);
+      setShowAddModal(true);
+    }
+  }, [location]);
 
   const handleChange = (e) => {
     const value =
@@ -62,19 +107,50 @@ const MyProfile = () => {
     });
   };
 
+  const handleFileChange = (e) => {
+    if (e.target.files) {
+      const newFiles = Array.from(e.target.files);
+      if (selectedFiles.length + newFiles.length > 3) {
+        toast.error("You can only upload up to 3 images");
+        return;
+      }
+      setSelectedFiles([...selectedFiles, ...newFiles]);
+    }
+  };
+
+  const removeFile = (index) => {
+    setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  };
+
   const handleSubmit = async (e) => {
     e.preventDefault();
-    if (!formData.title || !formData.price || !formData.description) {
+    if (
+      !formData.title ||
+      !formData.price ||
+      !formData.description ||
+      !formData.category
+    ) {
       toast.error("Please fill all required fields");
       return;
     }
 
+    const data = new FormData();
+    data.append("title", formData.title);
+    data.append("price", formData.price);
+    data.append("description", formData.description);
+    data.append("category", formData.category);
+    if (formData.itemImage) data.append("itemImage", formData.itemImage);
+
+    selectedFiles.forEach((file) => {
+      data.append("images", file);
+    });
+
     try {
       if (edit.isEdit) {
-        await dispatch(updateProduct(formData)).unwrap();
+        await dispatch(updateProduct({ id: formData._id, data })).unwrap();
         toast.success("Product Updated Successfully");
       } else {
-        await dispatch(addProduct(formData)).unwrap();
+        await dispatch(addProduct(data)).unwrap();
         toast.info("Product submitted for approval!");
       }
       setShowAddModal(false);
@@ -84,8 +160,9 @@ const MyProfile = () => {
         price: "",
         itemImage: "",
         description: "",
-        category: "General",
+        category: "",
       });
+      setSelectedFiles([]);
     } catch (error) {
       toast.error("Operation failed");
     }
@@ -93,7 +170,10 @@ const MyProfile = () => {
 
   const handleEdit = (product) => {
     dispatch(editProduct(product));
-    setFormData(product);
+    setFormData({
+      ...product,
+      category: product.category?._id || product.category, // Handle populated category
+    });
     setShowAddModal(true);
   };
 
@@ -110,10 +190,19 @@ const MyProfile = () => {
 
   useEffect(() => {
     if (!user) {
-      navigate("/login");
+      // If user is null, check if we have a token in localStorage (handled by authSlice init)
+      // If authSlice init failed or token expired, then redirect.
+      // But here, we rely on 'user' state.
+      // If page refresh happens, 'user' might be null initially if not persisted correctly.
+      // Assuming authSlice reads from localStorage on init.
+      const storedUser = JSON.parse(localStorage.getItem("user"));
+      if (!storedUser) {
+        navigate("/login");
+      }
     } else {
-      dispatch(getProducts());
+      dispatch(getProducts({ user: user._id, status: "all" }));
       dispatch(getMessages());
+      dispatch(getCategories("listing"));
     }
   }, [user, dispatch, navigate]);
 
@@ -141,45 +230,44 @@ const MyProfile = () => {
         <div className="grid grid-cols-1 lg:grid-cols-4 gap-8">
           {/* Sidebar */}
           <div className="lg:col-span-1">
-            <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-6 text-center">
-              <div className="w-24 h-24 bg-[#0a0a38] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
-                {user?.name?.charAt(0).toUpperCase()}
-              </div>
-              <h2 className="text-xl font-bold text-slate-900">{user?.name}</h2>
-              <p className="text-slate-500 text-sm mb-6">{user?.email}</p>
+            <Card className="text-center border-slate-200 shadow-sm">
+              <CardContent className="pt-6">
+                <div className="w-24 h-24 bg-[#0a0a38] rounded-full flex items-center justify-center mx-auto mb-4 text-white text-3xl font-bold">
+                  {user?.name?.charAt(0).toUpperCase()}
+                </div>
+                <h2 className="text-xl font-bold text-slate-900">
+                  {user?.name}
+                </h2>
+                <p className="text-slate-500 text-sm mb-6">{user?.email}</p>
 
-              <div className="space-y-2">
-                <button
-                  onClick={() => setActiveTab("listings")}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                    activeTab === "listings"
-                      ? "bg-blue-50 text-[#0a0a38]"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <Package size={20} />
-                  <span>My Listings</span>
-                </button>
-                <button
-                  onClick={() => setActiveTab("messages")}
-                  className={`w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium transition-all ${
-                    activeTab === "messages"
-                      ? "bg-blue-50 text-[#0a0a38]"
-                      : "text-slate-600 hover:bg-slate-50"
-                  }`}
-                >
-                  <MessageSquare size={20} />
-                  <span>Messages</span>
-                </button>
-                <button
-                  onClick={handleLogout}
-                  className="w-full flex items-center space-x-3 px-4 py-3 rounded-xl font-medium text-red-600 hover:bg-red-50 transition-all"
-                >
-                  <LogOut size={20} />
-                  <span>Logout</span>
-                </button>
-              </div>
-            </div>
+                <div className="space-y-2">
+                  <Button
+                    variant={activeTab === "listings" ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab("listings")}
+                  >
+                    <Package size={20} className="mr-2" />
+                    My Listings
+                  </Button>
+                  <Button
+                    variant={activeTab === "messages" ? "secondary" : "ghost"}
+                    className="w-full justify-start"
+                    onClick={() => setActiveTab("messages")}
+                  >
+                    <MessageSquare size={20} className="mr-2" />
+                    Messages
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    className="w-full justify-start text-red-600 hover:text-red-700 hover:bg-red-50"
+                    onClick={handleLogout}
+                  >
+                    <LogOut size={20} className="mr-2" />
+                    Logout
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           </div>
 
           {/* Main Content */}
@@ -190,7 +278,7 @@ const MyProfile = () => {
                   <h2 className="text-2xl font-bold text-slate-900">
                     My Listings
                   </h2>
-                  <button
+                  <Button
                     onClick={() => {
                       setFormData({
                         title: "",
@@ -202,32 +290,34 @@ const MyProfile = () => {
                       });
                       setShowAddModal(true);
                     }}
-                    className="px-4 py-2 bg-[#0a0a38] text-white rounded-lg font-medium hover:bg-[#050520] transition-colors flex items-center gap-2"
+                    className="bg-[#0a0a38] hover:bg-slate-900"
                   >
-                    <Plus size={20} />
+                    <Plus size={20} className="mr-2" />
                     Add New Listing
-                  </button>
+                  </Button>
                 </div>
 
                 {myProducts.length === 0 ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
-                    <Package
-                      size={48}
-                      className="mx-auto text-slate-300 mb-4"
-                    />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">
-                      No listings yet
-                    </h3>
-                    <p className="text-slate-500">
-                      Start selling by adding your first product.
-                    </p>
-                  </div>
+                  <Card className="border-slate-200 shadow-sm">
+                    <CardContent className="p-12 text-center">
+                      <Package
+                        size={48}
+                        className="mx-auto text-slate-300 mb-4"
+                      />
+                      <h3 className="text-lg font-medium text-slate-900 mb-2">
+                        No listings yet
+                      </h3>
+                      <p className="text-slate-500">
+                        Start selling by adding your first product.
+                      </p>
+                    </CardContent>
+                  </Card>
                 ) : (
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     {myProducts.map((product) => (
-                      <div
+                      <Card
                         key={product._id}
-                        className="bg-white rounded-xl shadow-sm border border-slate-200 overflow-hidden flex flex-col"
+                        className="overflow-hidden border-slate-200 shadow-sm flex flex-col"
                       >
                         <div className="relative h-48">
                           <img
@@ -236,61 +326,79 @@ const MyProfile = () => {
                             className="w-full h-full object-cover"
                           />
                           <div className="absolute top-3 right-3 flex gap-2">
-                            <button
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white text-blue-600"
                               onClick={() => handleEdit(product)}
-                              className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-blue-600 hover:bg-white transition-colors"
                             >
                               <Edit size={16} />
-                            </button>
-                            <button
+                            </Button>
+                            <Button
+                              size="icon"
+                              variant="secondary"
+                              className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white text-red-600"
                               onClick={() => handleDelete(product._id)}
-                              className="p-2 bg-white/90 backdrop-blur-sm rounded-full text-red-600 hover:bg-white transition-colors"
                             >
                               <Trash2 size={16} />
-                            </button>
+                            </Button>
                           </div>
                         </div>
-                        <div className="p-4 flex-grow flex flex-col">
+                        <CardContent className="p-4 flex-grow flex flex-col">
                           <div className="flex justify-between items-start mb-2">
                             <h3 className="font-bold text-slate-900 line-clamp-1">
                               {product.title}
                             </h3>
-                            <span
-                              className={`px-2 py-0.5 rounded text-xs font-medium capitalize ${
+                            <Badge
+                              variant={
                                 product.status === "approved"
-                                  ? "bg-green-100 text-green-800"
+                                  ? "success"
                                   : product.status === "pending"
-                                  ? "bg-yellow-100 text-yellow-800"
+                                  ? "warning"
                                   : product.status === "rejected"
-                                  ? "bg-red-100 text-red-800"
-                                  : "bg-slate-100 text-slate-800"
-                              }`}
+                                  ? "destructive"
+                                  : "secondary"
+                              }
+                              className={
+                                product.status === "approved"
+                                  ? "bg-green-100 text-green-800 hover:bg-green-100"
+                                  : product.status === "pending"
+                                  ? "bg-yellow-100 text-yellow-800 hover:bg-yellow-100"
+                                  : product.status === "rejected"
+                                  ? "bg-red-100 text-red-800 hover:bg-red-100"
+                                  : "bg-slate-100 text-slate-800 hover:bg-slate-100"
+                              }
                             >
                               {product.status}
-                            </span>
+                            </Badge>
                           </div>
                           <p className="text-slate-500 text-sm line-clamp-2 mb-4 flex-grow">
                             {product.description}
                           </p>
                           <div className="flex justify-between items-center mt-auto">
                             <div className="font-bold text-[#0a0a38] text-lg">
-                                {formatPrice(product.price)}
+                              {formatPrice(product.price)}
                             </div>
                             {product.status === "approved" && (
-                                <button
-                                    onClick={() => {
-                                        if(window.confirm("Mark this item as sold? It will be hidden from the marketplace.")) {
-                                            dispatch(markSoldProduct(product._id));
-                                        }
-                                    }}
-                                    className="text-xs px-3 py-1 bg-slate-900 text-white rounded-md hover:bg-slate-700 transition"
-                                >
-                                    Mark Sold
-                                </button>
+                              <Button
+                                size="sm"
+                                className="bg-slate-900 hover:bg-slate-700 text-xs h-7"
+                                onClick={() => {
+                                  if (
+                                    window.confirm(
+                                      "Mark this item as sold? It will be hidden from the marketplace."
+                                    )
+                                  ) {
+                                    dispatch(markSoldProduct(product._id));
+                                  }
+                                }}
+                              >
+                                Mark Sold
+                              </Button>
                             )}
                           </div>
-                        </div>
-                      </div>
+                        </CardContent>
+                      </Card>
                     ))}
                   </div>
                 )}
@@ -301,60 +409,64 @@ const MyProfile = () => {
               <div className="space-y-6">
                 <h2 className="text-2xl font-bold text-slate-900">Messages</h2>
                 {myMessages.length === 0 ? (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 p-12 text-center">
-                    <MessageSquare
-                      size={48}
-                      className="mx-auto text-slate-300 mb-4"
-                    />
-                    <h3 className="text-lg font-medium text-slate-900 mb-2">
-                      No messages yet
-                    </h3>
-                    <p className="text-slate-500">
-                      Messages from interested buyers will appear here.
-                    </p>
-                  </div>
+                  <Card className="border-slate-200 shadow-sm">
+                    <CardContent className="p-12 text-center">
+                      <MessageSquare
+                        size={48}
+                        className="mx-auto text-slate-300 mb-4"
+                      />
+                      <h3 className="text-lg font-medium text-slate-900 mb-2">
+                        No messages yet
+                      </h3>
+                      <p className="text-slate-500">
+                        Messages from interested buyers will appear here.
+                      </p>
+                    </CardContent>
+                  </Card>
                 ) : (
-                  <div className="bg-white rounded-2xl shadow-sm border border-slate-200 divide-y divide-slate-100">
-                    {myMessages.map((msg) => (
-                      <div
-                        key={msg._id}
-                        className="p-6 hover:bg-slate-50 transition-colors"
-                      >
-                        <div className="flex justify-between items-start mb-2">
-                          <div className="flex items-center gap-2">
-                            <span className="font-bold text-slate-900">
-                              {msg.sender?.name || "Unknown User"}
-                            </span>
-                            <span className="text-slate-400 text-sm">•</span>
-                            <span className="text-slate-500 text-sm">
-                              Interested in: {msg.product?.title || "Product"}
+                  <Card className="border-slate-200 shadow-sm">
+                    <div className="divide-y divide-slate-100">
+                      {myMessages.map((msg) => (
+                        <div
+                          key={msg._id}
+                          className="p-6 hover:bg-slate-50 transition-colors"
+                        >
+                          <div className="flex justify-between items-start mb-2">
+                            <div className="flex items-center gap-2">
+                              <span className="font-bold text-slate-900">
+                                {msg.sender?.name || "Unknown User"}
+                              </span>
+                              <span className="text-slate-400 text-sm">•</span>
+                              <span className="text-slate-500 text-sm">
+                                Interested in: {msg.product?.title || "Product"}
+                              </span>
+                            </div>
+                            <span className="text-xs text-slate-400">
+                              {new Date(msg.createdAt).toLocaleDateString()}
                             </span>
                           </div>
-                          <span className="text-xs text-slate-400">
-                            {new Date(msg.createdAt).toLocaleDateString()}
-                          </span>
-                        </div>
-                        <div className="flex gap-4 mt-4">
-                          <a
-                            href={`mailto:${msg.sender?.email}`}
-                            className="flex items-center gap-2 px-4 py-2 bg-blue-50 text-blue-700 rounded-lg text-sm font-medium hover:bg-blue-100 transition-colors"
-                          >
-                            <Mail size={16} />
-                            Email Buyer
-                          </a>
-                          {msg.sender?.phone && (
+                          <div className="flex gap-4 mt-4">
                             <a
-                              href={`tel:${msg.sender.phone}`}
-                              className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
+                              href={`mailto:${msg.sender?.email}`}
+                              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
                             >
-                              <Phone size={16} />
-                              Call Buyer
+                              <Mail size={16} />
+                              Email Buyer
                             </a>
-                          )}
+                            {msg.sender?.phone && (
+                              <a
+                                href={`tel:${msg.sender.phone}`}
+                                className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
+                              >
+                                <Phone size={16} />
+                                Call Buyer
+                              </a>
+                            )}
+                          </div>
                         </div>
-                      </div>
-                    ))}
-                  </div>
+                      ))}
+                    </div>
+                  </Card>
                 )}
               </div>
             )}
@@ -363,127 +475,147 @@ const MyProfile = () => {
       </div>
 
       {/* Add/Edit Product Modal */}
-      {showAddModal && (
-        <div className="fixed inset-0 bg-black/50 z-50 flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-white rounded-2xl w-full max-w-2xl max-h-[90vh] overflow-y-auto shadow-xl">
-            <div className="p-6 border-b border-slate-100 flex justify-between items-center">
-              <h3 className="text-xl font-bold text-slate-900">
-                {edit.isEdit ? "Edit Listing" : "Add New Listing"}
-              </h3>
-              <button
-                onClick={() => setShowAddModal(false)}
-                className="p-2 hover:bg-slate-100 rounded-full transition-colors"
-              >
-                <X size={24} className="text-slate-500" />
-              </button>
+      <Dialog open={showAddModal} onOpenChange={setShowAddModal}>
+        <DialogContent className="sm:max-w-2xl max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>
+              {edit.isEdit ? "Edit Listing" : "Add New Listing"}
+            </DialogTitle>
+          </DialogHeader>
+
+          <form onSubmit={handleSubmit} className="space-y-6 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Title
+              </label>
+              <Input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                placeholder="What are you selling?"
+              />
             </div>
 
-            <form onSubmit={handleSubmit} className="p-6 space-y-6">
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Title
+            <div className="grid grid-cols-2 gap-6">
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Price (₹)
                 </label>
-                <input
+                <Input
+                  type="number"
+                  name="price"
+                  value={formData.price}
+                  onChange={handleChange}
+                  placeholder="0.00"
+                />
+              </div>
+              <div className="space-y-2">
+                <label className="text-sm font-medium text-slate-700">
+                  Category
+                </label>
+                <select
+                  name="category"
+                  value={formData.category}
+                  onChange={handleChange}
+                  className="flex h-10 w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                >
+                  <option value="">Select Category</option>
+                  {categories.map((cat) => (
+                    <option key={cat._id} value={cat._id}>
+                      {cat.name}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Images (Max 3)
+              </label>
+              {selectedFiles.length > 0 && (
+                <div className="flex gap-2 mb-2 flex-wrap">
+                  {selectedFiles.map((file, index) => (
+                    <div
+                      key={index}
+                      className="relative w-20 h-20 border border-slate-200 rounded-lg overflow-hidden group"
+                    >
+                      <img
+                        src={URL.createObjectURL(file)}
+                        alt="preview"
+                        className="w-full h-full object-cover"
+                      />
+                      <button
+                        type="button"
+                        onClick={() => removeFile(index)}
+                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                      >
+                        <X size={12} />
+                      </button>
+                    </div>
+                  ))}
+                </div>
+              )}
+              <Input
+                type="file"
+                multiple
+                accept="image/*"
+                onChange={handleFileChange}
+                className="cursor-pointer"
+                disabled={selectedFiles.length >= 3}
+              />
+            </div>
+
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Image URL (Legacy/Optional)
+              </label>
+              <div className="relative">
+                <ImageIcon
+                  className="absolute left-3 top-2.5 text-slate-400"
+                  size={20}
+                />
+                <Input
                   type="text"
-                  name="title"
-                  value={formData.title}
+                  name="itemImage"
+                  value={formData.itemImage}
                   onChange={handleChange}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a0a38] focus:border-transparent"
-                  placeholder="What are you selling?"
+                  className="pl-10"
+                  placeholder="https://..."
                 />
               </div>
+            </div>
 
-              <div className="grid grid-cols-2 gap-6">
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Price (₹)
-                  </label>
-                  <input
-                    type="number"
-                    name="price"
-                    value={formData.price}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a0a38] focus:border-transparent"
-                    placeholder="0.00"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-slate-700 mb-1">
-                    Category
-                  </label>
-                  <select
-                    name="category"
-                    value={formData.category}
-                    onChange={handleChange}
-                    className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a0a38] focus:border-transparent"
-                  >
-                    <option value="General">General</option>
-                    <option value="Books">Books</option>
-                    <option value="Electronics">Electronics</option>
-                    <option value="Furniture">Furniture</option>
-                    <option value="Clothing">Clothing</option>
-                    <option value="Other">Other</option>
-                  </select>
-                </div>
-              </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Description
+              </label>
+              <textarea
+                name="description"
+                value={formData.description}
+                onChange={handleChange}
+                rows={4}
+                className="flex min-h-[80px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                placeholder="Describe your item..."
+              />
+            </div>
 
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Image URL
-                </label>
-                <div className="flex gap-2">
-                  <div className="relative flex-grow">
-                    <ImageIcon
-                      className="absolute left-3 top-2.5 text-slate-400"
-                      size={20}
-                    />
-                    <input
-                      type="text"
-                      name="itemImage"
-                      value={formData.itemImage}
-                      onChange={handleChange}
-                      className="w-full pl-10 pr-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a0a38] focus:border-transparent"
-                      placeholder="https://..."
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div>
-                <label className="block text-sm font-medium text-slate-700 mb-1">
-                  Description
-                </label>
-                <textarea
-                  name="description"
-                  value={formData.description}
-                  onChange={handleChange}
-                  rows={4}
-                  className="w-full px-4 py-2 border border-slate-300 rounded-lg focus:ring-2 focus:ring-[#0a0a38] focus:border-transparent"
-                  placeholder="Describe your item..."
-                />
-              </div>
-
-              {/* Moved logic: Removed isAvailable checkbox as status is handled by backend */ }
-
-              <div className="pt-4 border-t border-slate-100 flex justify-end gap-4">
-                <button
-                  type="button"
-                  onClick={() => setShowAddModal(false)}
-                  className="px-6 py-2 border border-slate-300 text-slate-700 rounded-lg font-medium hover:bg-slate-50 transition-colors"
-                >
-                  Cancel
-                </button>
-                <button
-                  type="submit"
-                  className="px-6 py-2 bg-[#0a0a38] text-white rounded-lg font-medium hover:bg-[#050520] transition-colors"
-                >
-                  {edit.isEdit ? "Save Changes" : "Post Listing"}
-                </button>
-              </div>
-            </form>
-          </div>
-        </div>
-      )}
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setShowAddModal(false)}
+              >
+                Cancel
+              </Button>
+              <Button type="submit" className="bg-[#0a0a38] hover:bg-slate-900">
+                {edit.isEdit ? "Save Changes" : "Post Listing"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

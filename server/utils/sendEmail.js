@@ -3,12 +3,10 @@ const nodemailer = require("nodemailer");
 // Create reusable transporter
 const createTransporter = () => {
   return nodemailer.createTransport({
-    host: process.env.EMAIL_HOST || "smtp.gmail.com",
-    port: process.env.EMAIL_PORT || 587,
-    secure: false, // true for 465, false for other ports
+    service: "gmail", // Built-in service, simpler for Gmail
     auth: {
-      user: process.env.EMAIL_USER,
-      pass: process.env.EMAIL_PASS,
+      user: process.env.EMAIL_USER || "johnwick123india@gmail.com", // Fallback/Default
+      pass: process.env.EMAIL_PASS ? process.env.EMAIL_PASS.replace(/\s+/g, '') : "", // Remove spaces if present
     },
   });
 };
@@ -20,7 +18,7 @@ const sendEmail = async (options) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER}>`,
+    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
     to: options.to,
     subject: options.subject,
     html: options.text, // Reusing text field for HTML for simplicity in this helper
@@ -39,7 +37,7 @@ const sendOTPEmail = async (to, otp, name) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER}>`,
+    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
     to,
     subject: "Verify Your Email - StuduMart",
     html: `
@@ -113,7 +111,7 @@ const sendWelcomeEmail = async (to, name) => {
   const transporter = createTransporter();
 
   const mailOptions = {
-    from: `"StuduMart" <${process.env.EMAIL_USER}>`,
+    from: `"StuduMart" <${process.env.EMAIL_USER || "johnwick123india@gmail.com"}>`,
     to,
     subject: "Welcome to StuduMart! 🎉",
     html: `

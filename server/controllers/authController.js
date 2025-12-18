@@ -24,8 +24,9 @@ const registerUser = async (req, res) => {
       throw new Error("Please fill all required details");
     }
 
-    // Enforce @acropolis.in email domain
-    if (!email.toLowerCase().endsWith("@acropolis.in")) {
+    // Enforce @acropolis.in email domain with Regex
+    const emailRegex = /^[a-zA-Z0-9._%+-]+@acropolis\.in$/;
+    if (!emailRegex.test(email)) {
       res.status(400);
       throw new Error("Only @acropolis.in emails are allowed");
     }
@@ -70,8 +71,8 @@ const registerUser = async (req, res) => {
           requiresVerification: true,
         });
       }
-      res.status(400);
-      throw new Error("Email already registered");
+      res.status(409); // Conflict
+      throw new Error("This email is already registered. Please login instead.");
     }
 
     if (phoneExist) {
@@ -262,14 +263,14 @@ const loginUser = async (req, res) => {
 
     if (!user) {
       res.status(401);
-      throw new Error("Invalid credentials");
+      throw new Error("We couldn't find an account with that email.");
     }
 
     // Check password
     const isMatch = await bcrypt.compare(password, user.password);
     if (!isMatch) {
       res.status(401);
-      throw new Error("Invalid credentials");
+      throw new Error("Incorrect password. Please try again or reset it.");
     }
 
     // Check if email is verified

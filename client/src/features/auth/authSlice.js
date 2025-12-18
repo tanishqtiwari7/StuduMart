@@ -34,6 +34,7 @@ const authSlice = createSlice({
       .addCase(registerUser.fulfilled, (state, action) => {
         state.isLoading = false;
         state.isSuccess = true;
+        state.message = action.payload.message; // Capture success message
         if (action.payload.requiresVerification) {
           state.verificationRequired = true;
           state.emailToVerify = action.payload.email;

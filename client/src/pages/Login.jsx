@@ -138,10 +138,11 @@ const Login = () => {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#0a0a38] hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors"
+                  disabled={isLoading}
+                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#0a0a38] hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Sign in
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {isLoading ? "Signing in..." : "Sign in"}
+                  {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
                 </button>
               </div>
             </form>

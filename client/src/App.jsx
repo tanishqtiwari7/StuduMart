@@ -16,6 +16,7 @@ import PageNotFound from "./pages/PageNotFound";
 import EventDetail from "./pages/EventDetail";
 import ForgotPassword from "./pages/ForgotPassword";
 import ResetPassword from "./pages/ResetPassword";
+import Unauthorized from "./pages/Unauthorized";
 
 
 import SuperAdminRoute from "./components/SuperAdminRoute";
@@ -27,6 +28,7 @@ const App = () => {
       <Routes>
         <Route path="*" element={<PageNotFound />} />
         <Route path="/" element={<Landing />} />
+        <Route path="/unauthorized" element={<Unauthorized />} />
         <Route path="/marketplace" element={<Marketplace />} />
         <Route path="/marketplace/:pid" element={<ProductDetail />} />
         <Route path="/events" element={<Events />} />

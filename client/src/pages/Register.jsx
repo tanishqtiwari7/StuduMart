@@ -52,16 +52,16 @@ const Register = () => {
       navigate("/");
     }
     
-    // Show OTP modal if verification is required
     if (verificationRequired) {
-      setShowOTPModal(true);
+        setShowOTPModal(true);
+        dispatch(resetAuth()); 
     }
-
-    if (isError && message) {
-      toast.error(message, { position: "top-center" });
-      dispatch(resetAuth());
+    
+    if (isError) {
+        toast.error(message, { position: "top-center" });
+        dispatch(resetAuth());
     }
-  }, [isError, message, user, navigate, verificationRequired, dispatch]);
+  }, [user, isError, isSuccess, message, navigate, dispatch, verificationRequired]);
 
   if (isLoading) {
     return <Loader />;
@@ -125,7 +125,7 @@ const Register = () => {
                     onChange={handleChange}
                     required
                     className="block w-full pl-10 pr-3 py-3 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm transition-colors"
-                    placeholder="you@university.edu"
+                    placeholder="example@acropolis.in"
                   />
                 </div>
               </div>
@@ -162,17 +162,18 @@ const Register = () => {
                     Year
                   </label>
                   <div className="mt-1">
-                    <input
-                      type="number"
+                    <select
                       id="enrollmentYear"
                       name="enrollmentYear"
                       value={formData.enrollmentYear}
                       onChange={handleChange}
-                      min="2020"
-                      max="2030"
                       required
-                      className="block w-full px-3 py-3 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm transition-colors"
-                    />
+                      className="block w-full pl-3 pr-10 py-3 border border-slate-300 rounded-lg focus:ring-[#0a0a38] focus:border-[#0a0a38] sm:text-sm transition-colors appearance-none bg-white max-h-40 overflow-y-auto"
+                    >
+                      {Array.from({ length: 10 }, (_, i) => new Date().getFullYear() - 5 + i).map(year => (
+                        <option key={year} value={year}>{year}</option>
+                      ))}
+                    </select>
                   </div>
                 </div>
               </div>
@@ -243,10 +244,11 @@ const Register = () => {
               <div>
                 <button
                   type="submit"
-                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#0a0a38] hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors"
+                  disabled={isLoading}
+                  className="w-full flex justify-center items-center py-3 px-4 border border-transparent rounded-lg shadow-sm text-sm font-medium text-white bg-[#0a0a38] hover:bg-slate-900 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-slate-900 transition-colors disabled:opacity-70 disabled:cursor-not-allowed"
                 >
-                  Create Account
-                  <ArrowRight className="ml-2 h-4 w-4" />
+                  {isLoading ? "Creating Account..." : "Create Account"}
+                  {!isLoading && <ArrowRight className="ml-2 h-4 w-4" />}
                 </button>
               </div>
             </form>

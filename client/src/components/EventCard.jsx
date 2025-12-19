@@ -47,7 +47,7 @@ const EventCard = ({ event }) => {
         </div>
 
         <CardContent className="p-5 flex flex-col flex-grow">
-          <h3 className="font-bold text-slate-900 text-lg mb-2 line-clamp-2 group-hover:text-blue-600 transition-colors">
+          <h3 className="font-bold text-slate-900 text-lg mb-2 line-clamp-2 group-hover:text-[#0a0a38] transition-colors">
             {event.eventName}
           </h3>
 

@@ -24,6 +24,9 @@ import {
   CardDescription,
 } from "./ui/card";
 
+import { toast } from "react-toastify";
+import axios from "axios";
+
 const AddEvent = () => {
   const { edit } = useSelector((state) => state.admin);
   const { categories } = useSelector((state) => state.category);
@@ -34,6 +37,7 @@ const AddEvent = () => {
     dispatch(getCategories("event"));
   }, [dispatch]);
 
+  const [uploading, setUploading] = useState(false);
   const [formData, setFormData] = useState({
     eventName: "",
     eventDescription: "",
@@ -45,6 +49,10 @@ const AddEvent = () => {
     organizer: "",
     price: "",
     category: "",
+    isTeamEvent: false,
+    teamPrice: "",
+    minTeamSize: 1,
+    maxTeamSize: 1,
   });
 
   const {
@@ -58,15 +66,53 @@ const AddEvent = () => {
     organizer,
     price,
     category,
+    isTeamEvent,
+    teamPrice,
+    minTeamSize,
+    maxTeamSize,
   } = formData;
 
   const handleChange = (e) => {
+    const value =
+      e.target.type === "checkbox" ? e.target.checked : e.target.value;
     setFormData((prev) => {
       return {
         ...prev,
-        [e.target.name]: e.target.value,
+        [e.target.name]: value,
       };
     });
+  };
+
+  // Ensure price is a number before sending
+  const prepareFormData = () => {
+    return {
+      ...formData,
+      price: Number(formData.price),
+      availableSeats: Number(formData.availableSeats),
+      teamPrice: Number(formData.teamPrice),
+      minTeamSize: Number(formData.minTeamSize),
+      maxTeamSize: Number(formData.maxTeamSize),
+    };
+  };
+
+  const uploadFileHandler = async (e) => {
+    const file = e.target.files[0];
+    const formData = new FormData();
+    formData.append("image", file);
+    setUploading(true);
+
+    try {
+      const { data } = await axios.post("/api/upload", formData);
+
+      // Fix: Ensure we use the correct path format
+      const imagePath = data.replace(/\\/g, "/");
+      setFormData((prev) => ({ ...prev, eventImage: imagePath }));
+      setUploading(false);
+    } catch (error) {
+      console.error(error);
+      setUploading(false);
+      toast.error("Image upload failed");
+    }
   };
 
   const handleAddEvent = async (e) => {
@@ -78,17 +124,22 @@ const AddEvent = () => {
       !eventDate ||
       !location ||
       !organizer ||
-      !category
+      !category ||
+      !eventImage
     ) {
-      alert("Please fill all required fields");
+      toast.error("Please fill all required fields");
       return;
     }
 
+    const dataToSend = prepareFormData();
+
     try {
       if (edit.isEdit) {
-        await dispatch(updateEvent(formData)).unwrap();
+        await dispatch(updateEvent(dataToSend)).unwrap();
+        toast.success("Event updated successfully");
       } else {
-        await dispatch(addEvent(formData)).unwrap();
+        await dispatch(addEvent(dataToSend)).unwrap();
+        toast.success("Event created successfully");
       }
       setFormData({
         eventName: "",
@@ -101,9 +152,14 @@ const AddEvent = () => {
         organizer: "",
         price: "",
         category: "",
+        isTeamEvent: false,
+        teamPrice: "",
+        minTeamSize: 1,
+        maxTeamSize: 1,
       });
     } catch (error) {
-      console.error("Failed to save event:", error);
+      console.error(error);
+      toast.error(error || "Operation failed");
     }
   };
 
@@ -265,8 +321,68 @@ const AddEvent = () => {
                   onChange={handleChange}
                   className="pl-10"
                   placeholder="0 for free events"
+                  disabled={isTeamEvent}
                 />
               </div>
+            </div>
+
+            {/* Team Event Section */}
+            <div className="col-span-1 md:col-span-2 space-y-4 border p-4 rounded-md bg-slate-50">
+              <div className="flex items-center space-x-2">
+                <input
+                  type="checkbox"
+                  name="isTeamEvent"
+                  checked={isTeamEvent}
+                  onChange={handleChange}
+                  id="isTeamEvent"
+                  className="h-4 w-4 rounded border-gray-300 text-[#0a0a38] focus:ring-[#0a0a38]"
+                />
+                <label
+                  htmlFor="isTeamEvent"
+                  className="text-sm font-medium text-slate-700"
+                >
+                  Is this a Team Event?
+                </label>
+              </div>
+
+              {isTeamEvent && (
+                <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Team Price (₹)
+                    </label>
+                    <Input
+                      type="number"
+                      name="teamPrice"
+                      value={teamPrice}
+                      onChange={handleChange}
+                      placeholder="Amount per team"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Min Team Size
+                    </label>
+                    <Input
+                      type="number"
+                      name="minTeamSize"
+                      value={minTeamSize}
+                      onChange={handleChange}
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">
+                      Max Team Size
+                    </label>
+                    <Input
+                      type="number"
+                      name="maxTeamSize"
+                      value={maxTeamSize}
+                      onChange={handleChange}
+                    />
+                  </div>
+                </div>
+              )}
             </div>
 
             <div className="space-y-2">
@@ -286,6 +402,19 @@ const AddEvent = () => {
                   className="pl-10"
                   placeholder="https://..."
                 />
+              </div>
+              <div className="mt-2">
+                <label className="text-sm font-medium text-slate-700 block mb-1">
+                  Or Upload Image
+                </label>
+                <Input
+                  type="file"
+                  onChange={uploadFileHandler}
+                  accept="image/*"
+                />
+                {uploading && (
+                  <p className="text-sm text-blue-600">Uploading...</p>
+                )}
               </div>
             </div>
           </div>

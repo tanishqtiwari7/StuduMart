@@ -326,13 +326,27 @@ const loginUser = async (req, res) => {
     user.lastActive = new Date();
     await user.save();
 
+    // Populate organization details if admin
+    let populatedUser = user;
+    if (user.organizationType === "Branch" && user.organizationId) {
+      populatedUser = await User.findById(user._id).populate(
+        "organizationId",
+        "name code"
+      );
+    } else if (user.organizationType === "Club" && user.organizationId) {
+      populatedUser = await User.findById(user._id).populate(
+        "organizationId",
+        "name code"
+      );
+    }
+
     res.status(200).json({
       _id: user._id,
       name: user.name,
       email: user.email,
       phone: user.phone,
       role: user.role,
-      branch: user.branch,
+      branch: user.branch, // Student branch
       university: user.university,
       profile: user.profile,
       clubs: user.clubs,
@@ -342,7 +356,7 @@ const loginUser = async (req, res) => {
       isActive: user.isActive,
       isAdmin: user.isAdmin,
       organizationType: user.organizationType,
-      organizationId: user.organizationId,
+      organizationId: populatedUser.organizationId, // Populated org details
       createdAt: user.createdAt,
       token: generateToken(user._id),
     });

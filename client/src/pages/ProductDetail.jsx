@@ -109,7 +109,12 @@ const ProductDetail = () => {
   const images =
     product.images && product.images.length > 0
       ? product.images
-      : [{ url: product.itemImage || "https://via.placeholder.com/400" }];
+      : [
+          {
+            url:
+              product.itemImage || "https://placehold.co/400x300?text=No+Image",
+          },
+        ];
 
   return (
     <div className="min-h-screen bg-slate-50 py-12 pt-24">
@@ -130,6 +135,10 @@ const ProductDetail = () => {
                 src={images[activeImage]?.url}
                 alt={product.title}
                 className="absolute inset-0 w-full h-full object-contain bg-slate-100"
+                onError={(e) => {
+                  e.target.onerror = null;
+                  e.target.src = "https://placehold.co/400x300?text=No+Image";
+                }}
               />
               <button className="absolute top-4 right-4 p-2 bg-white/90 backdrop-blur rounded-full shadow-sm hover:bg-white transition-colors text-slate-600 hover:text-red-500">
                 <Heart size={20} />
@@ -152,6 +161,11 @@ const ProductDetail = () => {
                       src={img.url}
                       alt=""
                       className="w-full h-full object-cover"
+                      onError={(e) => {
+                        e.target.onerror = null;
+                        e.target.src =
+                          "https://placehold.co/100x100?text=No+Image";
+                      }}
                     />
                   </button>
                 ))}
@@ -198,7 +212,7 @@ const ProductDetail = () => {
                   {formatPrice(product.price)}
                 </span>
                 {product.condition && (
-                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-blue-50 text-blue-700 mb-2">
+                  <span className="px-3 py-1 rounded-full text-sm font-medium bg-slate-100 text-slate-700 mb-2">
                     {product.condition.replace("-", " ")}
                   </span>
                 )}
@@ -297,12 +311,12 @@ const ProductDetail = () => {
               </div>
             </div>
 
-            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-              <h3 className="font-bold text-blue-900 mb-2 flex items-center gap-2">
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <h3 className="font-bold text-slate-900 mb-2 flex items-center gap-2">
                 <ShieldCheck size={20} />
                 Safety Tips
               </h3>
-              <ul className="text-sm text-blue-800 space-y-2 list-disc list-inside">
+              <ul className="text-sm text-slate-600 space-y-2 list-disc list-inside">
                 <li>Meet in a public place like the library or cafeteria.</li>
                 <li>Check the item carefully before paying.</li>
                 <li>Avoid sharing personal financial information.</li>

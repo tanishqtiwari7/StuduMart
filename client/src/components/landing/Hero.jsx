@@ -13,9 +13,9 @@ const Hero = () => {
         <div className="text-center max-w-3xl mx-auto">
           <h1 className="text-4xl md:text-6xl font-bold text-white mb-6 tracking-tight leading-tight">
             Buy, Sell & Connect <br />
-            <span className="text-blue-200">Exclusively for Students</span>
+            <span className="text-slate-200">Exclusively for Students</span>
           </h1>
-          <p className="text-xl text-blue-100 mb-10 font-light leading-relaxed max-w-2xl mx-auto">
+          <p className="text-xl text-slate-300 mb-10 font-light leading-relaxed max-w-2xl mx-auto">
             Verified student-only community. Meet on campus safely. Discover
             events happening now.
           </p>
@@ -23,7 +23,7 @@ const Hero = () => {
             <Link to="/marketplace">
               <Button
                 size="lg"
-                className="h-14 px-8 text-lg bg-white text-[#0a0a38] hover:bg-blue-50 border-0"
+                className="h-14 px-8 text-lg bg-white text-[#0a0a38] hover:bg-slate-100 border-0"
               >
                 <ShoppingBag className="mr-2 h-5 w-5" />
                 Explore Marketplace
@@ -33,7 +33,7 @@ const Hero = () => {
               <Button
                 size="lg"
                 variant="outline"
-                className="h-14 px-8 text-lg bg-[#1e1e50]/50 border-blue-400/30 text-white hover:bg-[#2a2a60] hover:text-white hover:border-blue-400/50 backdrop-blur-sm"
+                className="h-14 px-8 text-lg bg-[#1e1e50]/50 border-slate-400/30 text-white hover:bg-[#2a2a60] hover:text-white hover:border-slate-400/50 backdrop-blur-sm"
               >
                 <Calendar className="mr-2 h-5 w-5" />
                 Find Events

@@ -86,6 +86,17 @@ const update = async (updatedEvent, token) => {
   return response.data;
 };
 
+const inviteUser = async (userId, token) => {
+  let options = {
+    headers: {
+      authorization: `Bearer ${token}`,
+    },
+  };
+
+  const response = await axios.post("/api/admin/invite", { userId }, options);
+  return response.data;
+};
+
 const adminService = {
   fetchAllUsers,
   fetchAllEvents,
@@ -94,6 +105,7 @@ const adminService = {
   updateUser,
   createEvent,
   update,
+  inviteUser,
 };
 
 export default adminService;

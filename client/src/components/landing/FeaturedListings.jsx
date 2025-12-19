@@ -27,7 +27,7 @@ const FeaturedListings = () => {
           <Link to="/marketplace">
             <Button
               variant="ghost"
-              className="text-[#0a0a38] hover:text-blue-700 hover:bg-blue-50"
+              className="text-[#0a0a38] hover:text-[#0a0a38] hover:bg-slate-100"
             >
               View All <ArrowRight className="ml-2 h-4 w-4" />
             </Button>
@@ -82,16 +82,16 @@ const FeaturedListings = () => {
                       <div className="flex items-center justify-between mb-3">
                         <Badge
                           variant="outline"
-                          className="text-blue-600 bg-blue-50 border-blue-100"
+                          className="text-[#0a0a38] bg-slate-100 border-slate-200"
                         >
-                          {product.category || "General"}
+                          {product.category?.name || "General"}
                         </Badge>
                         <span className="text-xs text-slate-400 flex items-center gap-1">
                           <Clock size={12} />
                           {formatTimeAgo(product.createdAt)}
                         </span>
                       </div>
-                      <h3 className="font-bold text-slate-900 mb-1 truncate text-lg group-hover:text-blue-700 transition-colors">
+                      <h3 className="font-bold text-slate-900 mb-1 truncate text-lg group-hover:text-[#0a0a38] transition-colors">
                         {product.title}
                       </h3>
                       <p className="text-sm text-slate-500 truncate mt-auto pt-2 flex items-center gap-1">

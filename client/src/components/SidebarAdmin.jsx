@@ -50,7 +50,7 @@ const SidebarAdmin = ({ activeTab, setActiveTab }) => {
           variant={activeTab === item.id ? "secondary" : "ghost"}
           className={`w-full justify-start ${
             activeTab === item.id
-              ? "bg-blue-50 text-[#0a0a38] hover:bg-blue-100"
+              ? "bg-slate-100 text-slate-900 hover:bg-slate-200"
               : "text-slate-600 hover:bg-slate-50"
           }`}
           onClick={() => {
@@ -88,10 +88,12 @@ const SidebarAdmin = ({ activeTab, setActiveTab }) => {
       {/* Sidebar Container */}
       <div
         className={`fixed lg:static inset-y-0 left-0 z-40 w-64 transform transition-transform duration-300 ease-in-out lg:transform-none ${
-          mobileMenuOpen ? "translate-x-0" : "-translate-x-full"
+          mobileMenuOpen
+            ? "translate-x-0"
+            : "-translate-x-full lg:translate-x-0"
         }`}
       >
-        <Card className="h-full lg:h-auto border-r lg:border border-slate-200 shadow-sm lg:shadow-none rounded-none lg:rounded-xl">
+        <Card className="h-full lg:h-full border-r lg:border border-slate-200 shadow-sm lg:shadow-none rounded-none lg:rounded-none">
           <CardContent className="p-4 pt-20 lg:pt-4">
             <div className="lg:hidden mb-6 px-2">
               <h2 className="text-xl font-bold text-[#0a0a38]">Admin Panel</h2>

@@ -46,6 +46,7 @@ import {
   DialogFooter,
 } from "../components/ui/dialog";
 import { Badge } from "../components/ui/badge";
+import axios from "axios";
 
 const MyProfile = () => {
   const { user } = useSelector((state) => state.auth);
@@ -70,10 +71,56 @@ const MyProfile = () => {
   const [myMessages, setMyMessages] = useState([]);
 
   const [selectedFiles, setSelectedFiles] = useState([]);
+  const [existingImages, setExistingImages] = useState([]);
+
+  const [emailModalOpen, setEmailModalOpen] = useState(false);
+  const [emailData, setEmailData] = useState({
+    buyerId: "",
+    buyerName: "",
+    subject: "",
+    message: "",
+  });
 
   const dispatch = useDispatch();
   const navigate = useNavigate();
   const location = useLocation();
+
+  const handleOpenEmailModal = (buyer) => {
+    setEmailData({
+      buyerId: buyer._id,
+      buyerName: buyer.name,
+      subject: "Regarding your interest in my product",
+      message: "",
+    });
+    setEmailModalOpen(true);
+  };
+
+  const handleSendEmail = async () => {
+    if (!emailData.subject || !emailData.message) {
+      toast.error("Please fill all fields");
+      return;
+    }
+    try {
+      const config = {
+        headers: {
+          Authorization: `Bearer ${user.token}`,
+        },
+      };
+      await axios.post(
+        "/api/message/email",
+        {
+          buyerId: emailData.buyerId,
+          subject: emailData.subject,
+          message: emailData.message,
+        },
+        config
+      );
+      toast.success("Email sent successfully");
+      setEmailModalOpen(false);
+    } catch (error) {
+      toast.error(error.response?.data?.message || "Failed to send email");
+    }
+  };
 
   useEffect(() => {
     const params = new URLSearchParams(location.search);
@@ -110,8 +157,8 @@ const MyProfile = () => {
   const handleFileChange = (e) => {
     if (e.target.files) {
       const newFiles = Array.from(e.target.files);
-      if (selectedFiles.length + newFiles.length > 3) {
-        toast.error("You can only upload up to 3 images");
+      if (selectedFiles.length + existingImages.length + newFiles.length > 3) {
+        toast.error("You can only have up to 3 images total");
         return;
       }
       setSelectedFiles([...selectedFiles, ...newFiles]);
@@ -120,6 +167,10 @@ const MyProfile = () => {
 
   const removeFile = (index) => {
     setSelectedFiles(selectedFiles.filter((_, i) => i !== index));
+  };
+
+  const removeExistingImage = (index) => {
+    setExistingImages(existingImages.filter((_, i) => i !== index));
   };
 
   const handleSubmit = async (e) => {
@@ -140,6 +191,9 @@ const MyProfile = () => {
     data.append("description", formData.description);
     data.append("category", formData.category);
     if (formData.itemImage) data.append("itemImage", formData.itemImage);
+
+    // Append existing images as JSON string
+    data.append("images", JSON.stringify(existingImages));
 
     selectedFiles.forEach((file) => {
       data.append("images", file);
@@ -174,6 +228,8 @@ const MyProfile = () => {
       ...product,
       category: product.category?._id || product.category, // Handle populated category
     });
+    setExistingImages(product.images || []);
+    setSelectedFiles([]);
     setShowAddModal(true);
   };
 
@@ -329,7 +385,7 @@ const MyProfile = () => {
                             <Button
                               size="icon"
                               variant="secondary"
-                              className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white text-blue-600"
+                              className="h-8 w-8 bg-white/90 backdrop-blur-sm hover:bg-white text-[#0a0a38]"
                               onClick={() => handleEdit(product)}
                             >
                               <Edit size={16} />
@@ -434,33 +490,35 @@ const MyProfile = () => {
                           <div className="flex justify-between items-start mb-2">
                             <div className="flex items-center gap-2">
                               <span className="font-bold text-slate-900">
-                                {msg.sender?.name || "Unknown User"}
+                                {msg.user?.name || "Unknown User"}
                               </span>
                               <span className="text-slate-400 text-sm">•</span>
                               <span className="text-slate-500 text-sm">
-                                Interested in: {msg.product?.title || "Product"}
+                                Interested in: {msg.listing?.title || "Product"}
                               </span>
                             </div>
                             <span className="text-xs text-slate-400">
                               {new Date(msg.createdAt).toLocaleDateString()}
                             </span>
                           </div>
+                          <p className="text-slate-700 mb-4">{msg.text}</p>
                           <div className="flex gap-4 mt-4">
-                            <a
-                              href={`mailto:${msg.sender?.email}`}
-                              className="flex items-center gap-2 px-4 py-2 bg-slate-100 text-slate-900 rounded-lg text-sm font-medium hover:bg-slate-200 transition-colors"
-                            >
-                              <Mail size={16} />
-                              Email Buyer
-                            </a>
-                            {msg.sender?.phone && (
-                              <a
-                                href={`tel:${msg.sender.phone}`}
-                                className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium hover:bg-green-100 transition-colors"
+                            {msg.user?.email && (
+                              <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => handleOpenEmailModal(msg.user)}
+                                className="flex items-center gap-2"
                               >
+                                <Mail size={16} />
+                                Email Buyer
+                              </Button>
+                            )}
+                            {msg.user?.phone && (
+                              <div className="flex items-center gap-2 px-4 py-2 bg-green-50 text-green-700 rounded-lg text-sm font-medium">
                                 <Phone size={16} />
-                                Call Buyer
-                              </a>
+                                {msg.user.phone}
+                              </div>
                             )}
                           </div>
                         </div>
@@ -534,37 +592,75 @@ const MyProfile = () => {
               <label className="text-sm font-medium text-slate-700">
                 Images (Max 3)
               </label>
-              {selectedFiles.length > 0 && (
-                <div className="flex gap-2 mb-2 flex-wrap">
-                  {selectedFiles.map((file, index) => (
-                    <div
-                      key={index}
-                      className="relative w-20 h-20 border border-slate-200 rounded-lg overflow-hidden group"
-                    >
-                      <img
-                        src={URL.createObjectURL(file)}
-                        alt="preview"
-                        className="w-full h-full object-cover"
-                      />
-                      <button
-                        type="button"
-                        onClick={() => removeFile(index)}
-                        className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+
+              {/* Existing Images */}
+              {existingImages.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs text-slate-500 mb-1">Current Images:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {existingImages.map((img, index) => (
+                      <div
+                        key={index}
+                        className="relative w-20 h-20 border border-slate-200 rounded-lg overflow-hidden group"
                       >
-                        <X size={12} />
-                      </button>
-                    </div>
-                  ))}
+                        <img
+                          src={img.url}
+                          alt="existing"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeExistingImage(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {/* New Files */}
+              {selectedFiles.length > 0 && (
+                <div className="mb-2">
+                  <p className="text-xs text-slate-500 mb-1">New Uploads:</p>
+                  <div className="flex gap-2 flex-wrap">
+                    {selectedFiles.map((file, index) => (
+                      <div
+                        key={index}
+                        className="relative w-20 h-20 border border-slate-200 rounded-lg overflow-hidden group"
+                      >
+                        <img
+                          src={URL.createObjectURL(file)}
+                          alt="preview"
+                          className="w-full h-full object-cover"
+                        />
+                        <button
+                          type="button"
+                          onClick={() => removeFile(index)}
+                          className="absolute top-1 right-1 bg-red-500 text-white p-1 rounded-full opacity-0 group-hover:opacity-100 transition-opacity"
+                        >
+                          <X size={12} />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              )}
+
               <Input
                 type="file"
                 multiple
                 accept="image/*"
                 onChange={handleFileChange}
                 className="cursor-pointer"
-                disabled={selectedFiles.length >= 3}
+                disabled={selectedFiles.length + existingImages.length >= 3}
               />
+              <p className="text-xs text-slate-500">
+                {3 - (selectedFiles.length + existingImages.length)} slots
+                remaining
+              </p>
             </div>
 
             <div className="space-y-2">
@@ -614,6 +710,46 @@ const MyProfile = () => {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Email Buyer Modal */}
+      <Dialog open={emailModalOpen} onOpenChange={setEmailModalOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Email {emailData.buyerName}</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Subject
+              </label>
+              <Input
+                value={emailData.subject}
+                onChange={(e) =>
+                  setEmailData({ ...emailData, subject: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Message
+              </label>
+              <textarea
+                className="flex min-h-[120px] w-full rounded-md border border-slate-200 bg-white px-3 py-2 text-sm ring-offset-white placeholder:text-slate-500 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#0a0a38] focus-visible:ring-offset-2 disabled:cursor-not-allowed disabled:opacity-50"
+                value={emailData.message}
+                onChange={(e) =>
+                  setEmailData({ ...emailData, message: e.target.value })
+                }
+                placeholder="Write your message here..."
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setEmailModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSendEmail}>Send Email</Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

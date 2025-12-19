@@ -450,7 +450,7 @@ const reactivateAdmin = async (req, res) => {
 const getAllUsers = async (req, res) => {
   try {
     const { branch, role, isActive } = req.query;
-    const query = {};
+    const query = { isEmailVerified: true }; // Only show verified users
 
     if (branch) query.branch = branch;
     if (role) query.role = role;
@@ -546,16 +546,16 @@ const getSystemStats = async (req, res) => {
       upcomingEvents,
       bannedUsers,
     ] = await Promise.all([
-      User.countDocuments(),
-      User.countDocuments({ role: "student" }),
-      User.countDocuments({ role: "admin" }),
+      User.countDocuments({ isEmailVerified: true }),
+      User.countDocuments({ role: "student", isEmailVerified: true }),
+      User.countDocuments({ role: "admin", isEmailVerified: true }),
       Branch.countDocuments(),
       Club.countDocuments(),
       Listing.countDocuments(),
       Listing.countDocuments({ status: "active" }),
       Event.countDocuments(),
       Event.countDocuments({ eventDate: { $gte: new Date() } }),
-      User.countDocuments({ isActive: false }),
+      User.countDocuments({ isActive: false, isEmailVerified: true }),
     ]);
 
     res.status(200).json({

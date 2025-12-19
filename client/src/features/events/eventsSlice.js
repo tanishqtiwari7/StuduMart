@@ -113,10 +113,10 @@ export const getEvent = createAsyncThunk(
 // RSVP EVENT
 export const rsvpEvent = createAsyncThunk(
   "RSVP/EVENT",
-  async (eid, thunkAPI) => {
+  async (data, thunkAPI) => {
     try {
       const token = thunkAPI.getState().auth.user.token;
-      return await eventService.rsvpEvent(eid, token);
+      return await eventService.rsvpEvent(data, token);
     } catch (error) {
       const message = error.response?.data?.message || error.message;
       return thunkAPI.rejectWithValue(message);

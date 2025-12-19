@@ -14,10 +14,14 @@ const ProductCard = ({ product }) => {
           src={
             product.images?.[0]?.url ||
             product.itemImage ||
-            "https://via.placeholder.com/300"
+            "https://placehold.co/300x200?text=No+Image"
           }
           alt={product.title}
           className="w-full h-full object-cover group-hover:scale-105 transition-transform duration-500"
+          onError={(e) => {
+            e.target.onerror = null;
+            e.target.src = "https://placehold.co/300x200?text=No+Image";
+          }}
         />
         <div className="absolute top-3 left-3">
           <Badge

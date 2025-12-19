@@ -1,4 +1,5 @@
 const Listing = require("../models/listingModel");
+const mongoose = require("mongoose");
 
 const getProducts = async (req, res) => {
   try {
@@ -43,7 +44,11 @@ const getProducts = async (req, res) => {
     // If filtering by user (My Profile), show all statuses if not specified
     // Otherwise (General Feed), default to "approved"
     if (req.query.status) {
-      query.status = req.query.status;
+      if (req.query.status === "all") {
+        // Do not filter by status (show all)
+      } else {
+        query.status = req.query.status;
+      }
     } else if (!user) {
       query.status = "approved";
     }
@@ -167,80 +172,182 @@ const addProduct = async (req, res) => {
 };
 
 const getProduct = async (req, res) => {
-  const listing = await Listing.findById(req.params.id)
-    .populate(
-      "user",
-      "name email profile reputation verificationStatus createdAt"
-    )
-    .populate("category", "name");
+  try {
+    const listing = await Listing.findById(req.params.id)
+      .populate(
+        "user",
+        "name email profile reputation verificationStatus createdAt"
+      )
+      .populate("category", "name");
 
-  if (!listing) {
-    res.status(404);
-    throw new Error("Product Not Found!");
+    if (!listing) {
+      res.status(404);
+      throw new Error("Product Not Found!");
+    }
+
+    // Increment views
+    if (listing.views === undefined || listing.views === null) {
+      listing.views = 0;
+    }
+    listing.views += 1;
+
+    try {
+      await listing.save({ validateBeforeSave: false });
+    } catch (saveError) {
+      console.error(
+        `Failed to update views for product ${req.params.id}:`,
+        saveError.message
+      );
+      // Continue even if view increment fails
+    }
+
+    res.status(200).json(listing);
+  } catch (error) {
+    console.error(`Error fetching product ${req.params.id}:`, error);
+    res.status(500);
+    throw new Error(error.message);
   }
-
-  // Increment views
-  listing.views += 1;
-  await listing.save({ validateBeforeSave: false });
-
-  res.status(200).json(listing);
 };
 
 const updateProduct = async (req, res) => {
-  const listing = await Listing.findById(req.params.id);
+  try {
+    if (!mongoose.Types.ObjectId.isValid(req.params.id)) {
+      res.status(400);
+      throw new Error("Invalid Product ID");
+    }
 
-  if (!listing) {
-    res.status(404);
-    throw new Error("Product Not Found!");
-  }
+    const listing = await Listing.findById(req.params.id);
 
-  if (!req.user) {
-    res.status(401);
-    throw new Error("User not found");
-  }
+    if (!listing) {
+      res.status(404);
+      throw new Error("Product Not Found!");
+    }
 
-  if (listing.user.toString() !== req.user.id && req.user.role !== "admin") {
-    res.status(401);
-    throw new Error("User not authorized");
-  }
+    if (!req.user) {
+      res.status(401);
+      throw new Error("User not found");
+    }
 
-  let updatedData = { ...req.body };
+    // Ensure listing.user exists before checking
+    if (!listing.user) {
+      // If user is missing on listing, only admin can edit or it's a data integrity issue
+      if (req.user.role !== "admin") {
+        res.status(401);
+        throw new Error("User not authorized (Listing has no owner)");
+      }
+    } else if (
+      listing.user.toString() !== req.user.id &&
+      req.user.role !== "admin"
+    ) {
+      res.status(401);
+      throw new Error("User not authorized");
+    }
 
-  // Handle file uploads (Base64 Storage)
-  if (req.files && req.files.length > 0) {
-    const newImages = req.files.map((file, index) => {
-      const b64 = Buffer.from(file.buffer).toString("base64");
-      const dataURI = "data:" + file.mimetype + ";base64," + b64;
-      return {
-        url: dataURI,
-        caption: file.originalname,
-        isPrimary: false,
-      };
+    let updatedData = { ...req.body };
+
+    // Prevent updating immutable fields
+    delete updatedData._id;
+    delete updatedData.user;
+    delete updatedData.createdAt;
+    delete updatedData.updatedAt;
+
+    // Reset status to pending for non-admins
+    if (req.user.role !== "admin") {
+      updatedData.status = "pending";
+    }
+
+    // Handle Images
+    let keptImages = [];
+
+    // 1. Get kept images from req.body.images (if provided)
+    // If req.body.images is sent, it means the user is updating the image list.
+    // If it's NOT sent, we assume they want to keep existing images as is (unless files are added, which is handled below).
+    // However, to support deletion, the frontend MUST send the list of images to keep.
+    if (updatedData.images) {
+      try {
+        keptImages =
+          typeof updatedData.images === "string"
+            ? JSON.parse(updatedData.images)
+            : updatedData.images;
+
+        // Ensure it's an array
+        if (!Array.isArray(keptImages)) keptImages = [];
+      } catch (e) {
+        keptImages = [];
+      }
+    } else {
+      // If not provided in body, default to current images (so we don't accidentally delete them if only changing title)
+      // BUT, if the user explicitly sends an empty array string "[]", it will be caught above.
+      // If the field is missing entirely, we keep existing.
+      keptImages = listing.images || [];
+    }
+
+    // 2. Handle new file uploads
+    let newImages = [];
+    if (req.files && req.files.length > 0) {
+      newImages = req.files.map((file, index) => {
+        const b64 = Buffer.from(file.buffer).toString("base64");
+        const dataURI = "data:" + file.mimetype + ";base64," + b64;
+        return {
+          url: dataURI,
+          caption: file.originalname,
+          isPrimary: false, // We'll set primary later
+        };
+      });
+    }
+
+    // 3. Combine
+    updatedData.images = [...keptImages, ...newImages];
+
+    // 4. Ensure at least one image is primary
+    if (updatedData.images.length > 0) {
+      const hasPrimary = updatedData.images.some((img) => img.isPrimary);
+      if (!hasPrimary) {
+        updatedData.images[0].isPrimary = true;
+      }
+    }
+
+    // Parse JSON fields if string
+    if (typeof updatedData.location === "string") {
+      try {
+        updatedData.location = JSON.parse(updatedData.location);
+      } catch (e) {}
+    }
+    if (typeof updatedData.tags === "string") {
+      try {
+        updatedData.tags = JSON.parse(updatedData.tags);
+      } catch (e) {}
+    }
+
+    // Sanitize data: Remove empty strings, "undefined" strings, or null values
+    Object.keys(updatedData).forEach((key) => {
+      if (
+        updatedData[key] === "" ||
+        updatedData[key] === "undefined" ||
+        updatedData[key] === "null" ||
+        updatedData[key] === null ||
+        updatedData[key] === undefined
+      ) {
+        delete updatedData[key];
+      }
     });
 
-    const currentImages = listing.images || [];
-    updatedData.images = [...currentImages, ...newImages];
-  }
+    const updatedListing = await Listing.findByIdAndUpdate(
+      req.params.id,
+      updatedData,
+      { new: true, runValidators: true }
+    ).populate("user", "name email profile");
 
-  // Parse JSON fields if string
-  if (typeof updatedData.location === "string") {
-    try {
-      updatedData.location = JSON.parse(updatedData.location);
-    } catch (e) {}
+    res.status(200).json(updatedListing);
+  } catch (error) {
+    console.error(`Error updating product ${req.params.id}:`, error);
+    if (error.name === "ValidationError" || error.name === "CastError") {
+      res.status(400);
+    } else if (res.statusCode === 200) {
+      res.status(500);
+    }
+    throw new Error(error.message);
   }
-  if (typeof updatedData.tags === "string") {
-    try {
-      updatedData.tags = JSON.parse(updatedData.tags);
-    } catch (e) {}
-  }
-
-  const updatedListing = await Listing.findByIdAndUpdate(
-    req.params.id,
-    updatedData,
-    { new: true }
-  ).populate("user", "name email profile");
-
-  res.status(200).json(updatedListing);
 };
 
 const deleteProduct = async (req, res) => {

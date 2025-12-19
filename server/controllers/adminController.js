@@ -4,7 +4,7 @@ const Listing = require("../models/listingModel");
 const Comment = require("../models/commentModel");
 
 const getAllUsers = async (req, res) => {
-  let query = {};
+  let query = { isEmailVerified: true }; // Only show verified users
 
   // Filter for Branch Admins
   if (req.user.organizationType === "Branch" && req.user.organizationId) {
@@ -75,6 +75,10 @@ const addEvent = async (req, res) => {
     price,
     category,
     capacity,
+    isTeamEvent,
+    teamPrice,
+    minTeamSize,
+    maxTeamSize,
   } = req.body;
 
   if (
@@ -86,7 +90,7 @@ const addEvent = async (req, res) => {
     !location ||
     !availableSeats ||
     !organizer ||
-    !price ||
+    price === undefined ||
     !category
   ) {
     res.status(400);
@@ -106,6 +110,10 @@ const addEvent = async (req, res) => {
     organizerId: req.user._id,
     price,
     category,
+    isTeamEvent: isTeamEvent || false,
+    teamPrice: teamPrice || 0,
+    minTeamSize: minTeamSize || 1,
+    maxTeamSize: maxTeamSize || 1,
     visibility: { type: "all", branches: [], clubs: [] },
   });
 
@@ -155,6 +163,44 @@ const getAllComments = async (req, res) => {
   res.status(200).json(comments);
 };
 
+const inviteUser = async (req, res) => {
+  const { userId } = req.body;
+
+  if (!userId) {
+    res.status(400);
+    throw new Error("User ID is required");
+  }
+
+  const userToInvite = await User.findById(userId);
+  if (!userToInvite) {
+    res.status(404);
+    throw new Error("User not found");
+  }
+
+  // Check if requester is a Club Admin
+  if (req.user.organizationType !== "Club" || !req.user.organizationId) {
+    res.status(403);
+    throw new Error("Only Club Admins can invite users");
+  }
+
+  // Fetch Club Name
+  // Assuming organizationId is populated or we need to fetch it.
+  // In authMiddleware, we might not populate it fully. Let's fetch the club.
+  const Club = require("../models/clubModel");
+  const club = await Club.findById(req.user.organizationId);
+
+  if (!club) {
+    res.status(404);
+    throw new Error("Club not found");
+  }
+
+  const { sendInviteEmail } = require("../utils/sendEmail");
+
+  await sendInviteEmail(userToInvite.email, club.name, req.user.name);
+
+  res.status(200).json({ message: `Invitation sent to ${userToInvite.name}` });
+};
+
 module.exports = {
   getAllUsers,
   getAllListings,
@@ -163,4 +209,5 @@ module.exports = {
   updateEvent,
   updateProductListing,
   getAllComments,
+  inviteUser,
 };

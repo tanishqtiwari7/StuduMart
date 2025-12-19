@@ -170,9 +170,122 @@ const sendWelcomeEmail = async (to, name) => {
   }
 };
 
+/**
+ * Send Club Invitation Email
+ * @param {string} to - Recipient email
+ * @param {string} clubName - Name of the club
+ * @param {string} inviterName - Name of the admin inviting
+ */
+const sendInviteEmail = async (to, clubName, inviterName) => {
+  const transporter = createTransporter();
+
+  const mailOptions = {
+    from: `"StuduMart" <${
+      process.env.EMAIL_USER || "johnwick123india@gmail.com"
+    }>`,
+    to: to,
+    subject: `You're invited to join ${clubName}!`,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+          .header { background: #0a0a38; padding: 32px; text-align: center; }
+          .content { padding: 40px 32px; }
+          .button { display: inline-block; background: #0a0a38; color: #ffffff; padding: 12px 24px; border-radius: 8px; text-decoration: none; font-weight: 600; margin-top: 24px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="color: #ffffff; margin: 0; font-size: 24px;">Club Invitation</h1>
+          </div>
+          <div class="content">
+            <h2 style="color: #0f172a; margin-top: 0;">Hello! 👋</h2>
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+              <strong>${inviterName}</strong> has invited you to join <strong>${clubName}</strong> on StuduMart.
+            </p>
+            <p style="color: #475569; font-size: 16px; line-height: 1.6;">
+              Being part of a club allows you to participate in exclusive events, discussions, and more!
+            </p>
+            <div style="text-align: center;">
+              <a href="${
+                process.env.CLIENT_URL || "http://localhost:5173"
+              }/clubs" class="button">View Club</a>
+            </div>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  try {
+    await transporter.sendMail(mailOptions);
+    console.log("Invite email sent to:", to);
+  } catch (error) {
+    console.error("Invite email failed:", error);
+    throw new Error("Failed to send invitation email");
+  }
+};
+
+/**
+ * Send Email to Buyer from Seller
+ */
+const sendBuyerEmail = async (to, subject, text, senderName, senderEmail) => {
+  const transporter = createTransporter();
+
+  const mailOptions = {
+    from: `"StuduMart" <${
+      process.env.EMAIL_USER || "johnwick123india@gmail.com"
+    }>`,
+    replyTo: senderEmail,
+    to: to,
+    subject: subject,
+    html: `
+      <!DOCTYPE html>
+      <html>
+      <head>
+        <style>
+          body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background-color: #f8fafc; margin: 0; padding: 0; }
+          .container { max-width: 600px; margin: 40px auto; background: #ffffff; border-radius: 16px; overflow: hidden; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); }
+          .header { background: #0a0a38; padding: 24px; text-align: center; }
+          .content { padding: 32px; }
+          .footer { background: #f1f5f9; padding: 20px; text-align: center; font-size: 12px; color: #64748b; }
+          .warning { color: #ef4444; font-weight: bold; margin-top: 10px; }
+        </style>
+      </head>
+      <body>
+        <div class="container">
+          <div class="header">
+            <h1 style="color: #ffffff; margin: 0; font-size: 20px;">New Message from ${senderName}</h1>
+          </div>
+          <div class="content">
+            <p style="color: #334155; font-size: 16px; line-height: 1.6; white-space: pre-wrap;">${text}</p>
+            <p style="color: #64748b; font-size: 14px; margin-top: 20px;">
+              You can reply directly to this email to contact ${senderName} (${senderEmail}).
+            </p>
+          </div>
+          <div class="footer">
+            <p>StuduMart Marketplace Safety Tip:</p>
+            <p class="warning">Be safe and deal in open crowded area.</p>
+          </div>
+        </div>
+      </body>
+      </html>
+    `,
+  };
+
+  await transporter.sendMail(mailOptions);
+};
+
 module.exports = {
   sendOTPEmail,
   generateOTP,
   sendWelcomeEmail,
   sendEmail,
+  sendInviteEmail,
+  sendBuyerEmail,
 };

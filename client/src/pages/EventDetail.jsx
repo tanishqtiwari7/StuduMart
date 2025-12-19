@@ -20,7 +20,18 @@ import {
   Share2,
   CheckCircle,
   Ticket,
+  Plus,
+  X,
 } from "lucide-react";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "../components/ui/dialog";
+import { Button } from "../components/ui/button";
+import { Input } from "../components/ui/input";
 
 const EventDetail = () => {
   const {
@@ -35,6 +46,39 @@ const EventDetail = () => {
   const { eid } = useParams();
   const dispatch = useDispatch();
   const [showRsvpModal, setShowRsvpModal] = useState(false);
+
+  const [showTeamModal, setShowTeamModal] = useState(false);
+  const [teamData, setTeamData] = useState({ teamName: "", teamMembers: [] });
+  const [memberEmail, setMemberEmail] = useState("");
+
+  const addMember = () => {
+    if (memberEmail && !teamData.teamMembers.includes(memberEmail)) {
+      setTeamData({
+        ...teamData,
+        teamMembers: [...teamData.teamMembers, memberEmail],
+      });
+      setMemberEmail("");
+    }
+  };
+
+  const removeMember = (email) => {
+    setTeamData({
+      ...teamData,
+      teamMembers: teamData.teamMembers.filter((e) => e !== email),
+    });
+  };
+
+  const handleTeamSubmit = () => {
+    const size = teamData.teamMembers.length + 1;
+    if (size < event.minTeamSize || size > event.maxTeamSize) {
+      toast.error(
+        `Team size must be between ${event.minTeamSize} and ${event.maxTeamSize}`
+      );
+      return;
+    }
+    dispatch(rsvpEvent({ id: eid, teamData }));
+    setShowTeamModal(false);
+  };
 
   useEffect(() => {
     dispatch(getEvent(eid));
@@ -156,6 +200,13 @@ const EventDetail = () => {
                     >
                       Sold Out
                     </button>
+                  ) : event.isTeamEvent ? (
+                    <button
+                      onClick={() => setShowTeamModal(true)}
+                      className="px-8 py-3 bg-[#0a0a38] hover:bg-[#15154a] text-white rounded-xl font-bold shadow-lg transition-all flex items-center gap-2"
+                    >
+                      Register Team
+                    </button>
                   ) : isPaidEvent ? (
                     <div className="w-48">
                       <PaymentButton
@@ -272,18 +323,81 @@ const EventDetail = () => {
               )}
             </div>
 
-            <div className="bg-blue-50 rounded-2xl p-6 border border-blue-100">
-              <h3 className="font-bold text-blue-900 mb-2">Need Help?</h3>
-              <p className="text-sm text-blue-800 mb-4">
+            <div className="bg-slate-50 rounded-2xl p-6 border border-slate-100">
+              <h3 className="font-bold text-slate-900 mb-2">Need Help?</h3>
+              <p className="text-sm text-slate-600 mb-4">
                 Contact the organizer for questions about this event.
               </p>
-              <button className="w-full py-2 bg-white text-blue-900 font-medium rounded-lg border border-blue-200 hover:bg-blue-50 transition-colors">
+              <button className="w-full py-2 bg-white text-slate-900 font-medium rounded-lg border border-slate-200 hover:bg-slate-50 transition-colors">
                 Contact Organizer
               </button>
             </div>
           </div>
         </div>
       </div>
+      {/* Team Registration Modal */}
+      <Dialog open={showTeamModal} onOpenChange={setShowTeamModal}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle>Register Your Team</DialogTitle>
+          </DialogHeader>
+          <div className="space-y-4 py-4">
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Team Name
+              </label>
+              <Input
+                value={teamData.teamName}
+                onChange={(e) =>
+                  setTeamData({ ...teamData, teamName: e.target.value })
+                }
+                placeholder="Enter team name"
+              />
+            </div>
+            <div className="space-y-2">
+              <label className="text-sm font-medium text-slate-700">
+                Add Team Members (Email)
+              </label>
+              <div className="flex gap-2">
+                <Input
+                  value={memberEmail}
+                  onChange={(e) => setMemberEmail(e.target.value)}
+                  placeholder="student@example.com"
+                />
+                <Button onClick={addMember} type="button" size="icon">
+                  <Plus size={18} />
+                </Button>
+              </div>
+              <div className="space-y-2 mt-2">
+                {teamData.teamMembers.map((email, index) => (
+                  <div
+                    key={index}
+                    className="flex items-center justify-between bg-slate-50 p-2 rounded-md"
+                  >
+                    <span className="text-sm text-slate-700">{email}</span>
+                    <button
+                      onClick={() => removeMember(email)}
+                      className="text-red-500 hover:text-red-700"
+                    >
+                      <X size={16} />
+                    </button>
+                  </div>
+                ))}
+              </div>
+              <p className="text-xs text-slate-500">
+                Team Size: {teamData.teamMembers.length + 1} (Min:{" "}
+                {event.minTeamSize}, Max: {event.maxTeamSize})
+              </p>
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setShowTeamModal(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleTeamSubmit}>Register Team</Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 };

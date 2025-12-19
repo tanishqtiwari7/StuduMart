@@ -197,21 +197,96 @@ const rsvpEvent = async (req, res) => {
     throw new Error("This is a paid event. Please complete payment to RSVP.");
   }
 
-  const alreadyRSVP = event.attendees.find(
-    (r) => r.user.toString() === req.user._id.toString()
-  );
-
-  if (alreadyRSVP) {
-    res.status(400);
-    throw new Error("You have already RSVP'd");
-  }
-
   if (event.availableSeats <= 0) {
     res.status(400);
     throw new Error("Event is full");
   }
 
-  event.attendees.push({ user: req.user._id, status: "going" });
+  // Team Event Logic
+  if (event.isTeamEvent) {
+    const { teamName, teamMembers } = req.body; // teamMembers is array of emails
+
+    if (!teamName) {
+      res.status(400);
+      throw new Error("Team Name is required");
+    }
+
+    // Include current user in team count
+    const teamSize = (teamMembers ? teamMembers.length : 0) + 1;
+
+    if (teamSize < event.minTeamSize || teamSize > event.maxTeamSize) {
+      res.status(400);
+      throw new Error(
+        `Team size must be between ${event.minTeamSize} and ${event.maxTeamSize}`
+      );
+    }
+
+    if (event.availableSeats < teamSize) {
+      res.status(400);
+      throw new Error("Not enough seats available for this team");
+    }
+
+    // Find users by email
+    const memberUsers = [];
+    if (teamMembers && teamMembers.length > 0) {
+      const users = await User.find({ email: { $in: teamMembers } });
+      if (users.length !== teamMembers.length) {
+        res.status(400);
+        throw new Error(
+          "Some team members not found. Please ensure they are registered."
+        );
+      }
+      memberUsers.push(...users);
+    }
+
+    // Check if any member (including self) is already registered
+    const allTeamUserIds = [req.user._id, ...memberUsers.map((u) => u._id)];
+
+    const alreadyRegistered = event.attendees.some((a) =>
+      allTeamUserIds.some((uid) => uid.toString() === a.user.toString())
+    );
+
+    if (alreadyRegistered) {
+      res.status(400);
+      throw new Error(
+        "One or more team members are already registered for this event."
+      );
+    }
+
+    // Add attendees
+    event.attendees.push({
+      user: req.user._id,
+      status: "going",
+      teamName,
+      isTeamLeader: true,
+    });
+
+    memberUsers.forEach((u) => {
+      event.attendees.push({
+        user: u._id,
+        status: "going",
+        teamName,
+        isTeamLeader: false,
+      });
+    });
+
+    // Decrement available seats
+    event.availableSeats -= teamSize;
+  } else {
+    // Individual Logic
+    const alreadyRSVP = event.attendees.find(
+      (r) => r.user.toString() === req.user._id.toString()
+    );
+
+    if (alreadyRSVP) {
+      res.status(400);
+      throw new Error("You have already RSVP'd");
+    }
+
+    event.attendees.push({ user: req.user._id, status: "going" });
+    event.availableSeats -= 1;
+  }
+
   await event.save();
 
   res.status(200).json(event);

@@ -16,7 +16,7 @@ const Footer = () => {
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
           <div className="col-span-1 md:col-span-2">
             <div className="flex items-center space-x-2 mb-4">
-              <div className="p-2 bg-blue-600 rounded-lg">
+              <div className="p-2 bg-[#0a0a38] rounded-lg">
                 <ShoppingBag className="text-white" size={24} />
               </div>
               <span className="text-2xl font-bold text-white">StuduMart</span>
@@ -36,7 +36,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/marketplace"
-                  className="text-sm hover:text-blue-400 transition-colors flex items-center gap-2"
+                  className="text-sm hover:text-white transition-colors flex items-center gap-2"
                 >
                   <ShoppingBag size={16} />
                   Marketplace
@@ -45,7 +45,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/events"
-                  className="text-sm hover:text-blue-400 transition-colors flex items-center gap-2"
+                  className="text-sm hover:text-white transition-colors flex items-center gap-2"
                 >
                   <Calendar size={16} />
                   Events
@@ -54,7 +54,7 @@ const Footer = () => {
               <li>
                 <Link
                   to="/login"
-                  className="text-sm hover:text-blue-400 transition-colors flex items-center gap-2"
+                  className="text-sm hover:text-white transition-colors flex items-center gap-2"
                 >
                   <UserIcon />
                   Login
@@ -70,7 +70,7 @@ const Footer = () => {
             <div className="flex space-x-4">
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-blue-600 hover:text-white transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-[#0a0a38] hover:text-white transition-all duration-300"
                 aria-label="Facebook"
               >
                 <Facebook size={20} />
@@ -84,7 +84,7 @@ const Footer = () => {
               </a>
               <a
                 href="#"
-                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-sky-500 hover:text-white transition-all duration-300"
+                className="w-10 h-10 rounded-full bg-slate-800 flex items-center justify-center hover:bg-[#0a0a38] hover:text-white transition-all duration-300"
                 aria-label="Twitter"
               >
                 <Twitter size={20} />
@@ -93,7 +93,7 @@ const Footer = () => {
             <div className="mt-6">
               <a
                 href="mailto:support@studumart.com"
-                className="flex items-center gap-2 text-sm hover:text-blue-400 transition-colors"
+                className="flex items-center gap-2 text-sm hover:text-white transition-colors"
               >
                 <Mail size={16} />
                 support@studumart.com

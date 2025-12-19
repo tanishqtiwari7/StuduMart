@@ -83,6 +83,9 @@ app.use("/api/payments", require("./routes/paymentRoutes"));
 // Category Routes
 app.use("/api/categories", require("./routes/categoryRoutes"));
 
+// Upload Routes
+app.use("/api/upload", require("./routes/uploadRoutes"));
+
 // Error Handler
 app.use(errorHandler);
 

@@ -1,0 +1,124 @@
+[2025-12-18T18:06:33.089Z] PUT /api/product/694442a8d900e293fa9dafbf
+Error: User not authorized (Listing has no owner)
+Stack: Error: User not authorized (Listing has no owner)
+    at updateProduct (E:\code\minor project\server\controllers\productController.js:312:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+    at async runTest (E:\code\minor project\server\reproduce_issue_v3.js:70:9)
+
+[2025-12-18T18:09:12.573Z] PUT /api/product/69441dd04d6d01ce68f0a17e
+Error: Field value too long
+Stack: MulterError: Field value too long
+    at abortWithCode (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:85:22)
+    at Multipart.<anonymous> (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:92:34)
+    at Multipart.emit (node:events:518:28)
+    at SBMH.ssCb [as _cb] (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:537:16)
+    at feed (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:219:14)
+    at SBMH.push (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:104:16)
+    at Multipart._write (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:567:19)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+
+[2025-12-18T18:09:16.173Z] PUT /api/product/69441dd04d6d01ce68f0a17e
+Error: Field value too long
+Stack: MulterError: Field value too long
+    at abortWithCode (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:85:22)
+    at Multipart.<anonymous> (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:92:34)
+    at Multipart.emit (node:events:518:28)
+    at SBMH.ssCb [as _cb] (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:537:16)
+    at feed (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:219:14)
+    at SBMH.push (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:104:16)
+    at Multipart._write (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:567:19)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+
+[2025-12-18T18:10:30.021Z] PUT /api/product/69441dd04d6d01ce68f0a17e
+Error: Field value too long
+Stack: MulterError: Field value too long
+    at abortWithCode (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:85:22)
+    at Multipart.<anonymous> (E:\code\minor project\server\node_modules\multer\lib\make-middleware.js:92:34)
+    at Multipart.emit (node:events:518:28)
+    at SBMH.ssCb [as _cb] (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:537:16)
+    at feed (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:219:14)
+    at SBMH.push (E:\code\minor project\server\node_modules\streamsearch\lib\sbmh.js:104:16)
+    at Multipart._write (E:\code\minor project\server\node_modules\busboy\lib\types\multipart.js:567:19)
+    at writeOrBuffer (node:internal/streams/writable:572:12)
+    at _write (node:internal/streams/writable:501:10)
+    at Writable.write (node:internal/streams/writable:510:10)
+
+[2025-12-19T06:18:19.112Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:18:51.945Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:18:59.728Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:22:06.618Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:22:34.382Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:23:07.290Z] POST /api/auth/login
+Error: We couldn't find an account with that email.
+Stack: Error: We couldn't find an account with that email.
+    at loginUser (E:\code\minor project\server\controllers\authController.js:365:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T06:24:11.807Z] POST /api/auth/register
+Error: Only @acropolis.in emails are allowed
+Stack: Error: Only @acropolis.in emails are allowed
+    at registerUser (E:\code\minor project\server\controllers\authController.js:141:11)
+    at Layer.handleRequest (E:\code\minor project\server\node_modules\router\lib\layer.js:152:17)
+    at next (E:\code\minor project\server\node_modules\router\lib\route.js:157:13)
+    at Route.dispatch (E:\code\minor project\server\node_modules\router\lib\route.js:117:3)
+    at handle (E:\code\minor project\server\node_modules\router\index.js:435:11)
+    at Layer.handleRequest (E:\code\minor project\server\node_modules\router\lib\layer.js:152:17)
+    at E:\code\minor project\server\node_modules\router\index.js:295:15
+    at processParams (E:\code\minor project\server\node_modules\router\index.js:582:12)
+    at next (E:\code\minor project\server\node_modules\router\index.js:291:5)
+    at Function.handle (E:\code\minor project\server\node_modules\router\index.js:186:3)
+
+[2025-12-19T06:25:41.036Z] POST /api/auth/register
+Error: Phone number already registered
+Stack: Error: Phone number already registered
+    at registerUser (E:\code\minor project\server\controllers\authController.js:141:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T07:28:10.971Z] POST /api/superadmin/admins
+Error: User with this email or phone already exists
+Stack: Error: User with this email or phone already exists
+    at createAdmin (E:\code\minor project\server\controllers\superAdminController.js:322:11)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+
+[2025-12-19T08:08:12.833Z] POST /api/upload
+Error: undefined
+Stack: undefined
+
+[2025-12-19T08:08:25.201Z] POST /api/admin/event
+Error: Please Fill Details
+Stack: Error: Please Fill Details
+    at addEvent (E:\code\minor project\server\controllers\adminController.js:97:11)
+    at Layer.handleRequest (E:\code\minor project\server\node_modules\router\lib\layer.js:152:17)
+    at next (E:\code\minor project\server\node_modules\router\lib\route.js:157:13)
+    at adminProtect (E:\code\minor project\server\middleware\adminMiddleware.js:19:17)
+    at process.processTicksAndRejections (node:internal/process/task_queues:105:5)
+

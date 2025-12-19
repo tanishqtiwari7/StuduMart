@@ -99,6 +99,8 @@ const eventSchema = new mongoose.Schema(
           ref: "Payment",
         },
         rsvpDate: { type: Date, default: Date.now },
+        teamName: String,
+        isTeamLeader: { type: Boolean, default: false },
       },
     ],
 
@@ -108,6 +110,25 @@ const eventSchema = new mongoose.Schema(
       required: [true, "Please Fill Event Price"],
       default: 0,
     },
+
+    // Team Event Settings
+    isTeamEvent: {
+      type: Boolean,
+      default: false,
+    },
+    teamPrice: {
+      type: Number,
+      default: 0,
+    },
+    minTeamSize: {
+      type: Number,
+      default: 1,
+    },
+    maxTeamSize: {
+      type: Number,
+      default: 1,
+    },
+
     isFree: {
       type: Boolean,
       default: true,

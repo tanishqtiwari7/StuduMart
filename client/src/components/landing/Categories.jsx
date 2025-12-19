@@ -23,10 +23,10 @@ const Categories = () => {
               to={`/marketplace?category=${cat.id}`}
               className="group"
             >
-              <Card className="h-full border-slate-100 bg-slate-50 hover:bg-white hover:border-blue-100 hover:shadow-md transition-all duration-300">
+              <Card className="h-full border-slate-100 bg-slate-50 hover:bg-white hover:border-slate-200 hover:shadow-md transition-all duration-300">
                 <CardContent className="p-8 flex flex-col items-center justify-center text-center h-full">
-                  <cat.icon className="h-10 w-10 text-[#0a0a38] mb-4 group-hover:scale-110 group-hover:text-blue-600 transition-all duration-300" />
-                  <span className="font-semibold text-lg text-slate-900 group-hover:text-blue-700 transition-colors">
+                  <cat.icon className="h-10 w-10 text-[#0a0a38] mb-4 group-hover:scale-110 group-hover:text-[#0a0a38] transition-all duration-300" />
+                  <span className="font-semibold text-lg text-slate-900 group-hover:text-[#0a0a38] transition-colors">
                     {cat.name}
                   </span>
                 </CardContent>

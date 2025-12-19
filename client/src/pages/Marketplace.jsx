@@ -53,8 +53,8 @@ const Marketplace = () => {
       page: currentPage,
       search: debouncedSearch,
       sort: filters.sortBy,
-      "price[gte]": filters.priceRange.min,
-      "price[lte]": filters.priceRange.max,
+      minPrice: filters.priceRange.min,
+      maxPrice: filters.priceRange.max,
     };
 
     if (filters.category) params.category = filters.category;

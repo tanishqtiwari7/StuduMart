@@ -75,7 +75,12 @@ const listingSchema = new mongoose.Schema(
 
 // Pre-save hook to ensure itemImage is set for backward compatibility
 listingSchema.pre("save", function (next) {
-  if (this.images && this.images.length > 0 && !this.itemImage) {
+  if (
+    this.images &&
+    Array.isArray(this.images) &&
+    this.images.length > 0 &&
+    !this.itemImage
+  ) {
     this.itemImage = this.images[0].url;
   }
   // Sync isAvailable with status

@@ -127,11 +127,11 @@ const Header = () => {
                   "flex items-center space-x-2 px-4 py-2 rounded-md text-sm font-medium transition-all duration-200",
                   isActive(link.path)
                     ? scrolled
-                      ? "bg-blue-50 text-[#0a0a38]"
+                      ? "bg-slate-100 text-[#0a0a38]"
                       : "bg-white/10 text-white"
                     : scrolled
                     ? "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
-                    : "text-blue-100 hover:bg-white/10 hover:text-white"
+                    : "text-slate-200 hover:bg-white/10 hover:text-white"
                 )}
               >
                 {link.icon}
@@ -181,7 +181,7 @@ const Header = () => {
                     className={cn(
                       scrolled
                         ? "text-slate-600 hover:text-slate-900"
-                        : "text-white hover:text-blue-100 hover:bg-white/10"
+                        : "text-white hover:text-slate-200 hover:bg-white/10"
                     )}
                   >
                     Login
@@ -192,7 +192,7 @@ const Header = () => {
                     className={cn(
                       scrolled
                         ? "bg-[#0a0a38] text-white hover:bg-slate-900"
-                        : "bg-white text-[#0a0a38] hover:bg-blue-50"
+                        : "bg-white text-[#0a0a38] hover:bg-slate-100"
                     )}
                   >
                     Register
@@ -227,7 +227,7 @@ const Header = () => {
                 onClick={() => setMobileMenuOpen(false)}
                 className={`flex items-center space-x-3 px-3 py-3 rounded-md text-base font-medium ${
                   isActive(link.path)
-                    ? "bg-blue-50 text-[#0a0a38]"
+                    ? "bg-slate-100 text-[#0a0a38]"
                     : "text-slate-600 hover:bg-slate-50 hover:text-slate-900"
                 }`}
               >
@@ -269,7 +269,7 @@ const Header = () => {
                   <Link
                     to="/register"
                     onClick={() => setMobileMenuOpen(false)}
-                    className="flex justify-center px-4 py-2 bg-[#0a0a38] border border-transparent rounded-md text-sm font-medium text-white hover:bg-blue-700"
+                    className="flex justify-center px-4 py-2 bg-[#0a0a38] border border-transparent rounded-md text-sm font-medium text-white hover:bg-slate-800"
                   >
                     Register
                   </Link>

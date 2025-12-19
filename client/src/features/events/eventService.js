@@ -10,13 +10,22 @@ const fetchEvent = async (eid) => {
   return response.data;
 };
 
-const rsvpEvent = async (eid, token) => {
+const rsvpEvent = async (data, token) => {
   const config = {
     headers: {
       Authorization: `Bearer ${token}`,
     },
   };
-  const response = await axios.post("/api/event/" + eid + "/rsvp", {}, config);
+
+  let id = data;
+  let body = {};
+
+  if (typeof data === "object" && data.id) {
+    id = data.id;
+    body = data.teamData;
+  }
+
+  const response = await axios.post("/api/event/" + id + "/rsvp", body, config);
   return response.data;
 };
 
